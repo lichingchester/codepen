@@ -23,7 +23,8 @@ precision mediump float;
 #define PI 3.14159265359
 
 float plot(vec2 st, float pct){
-  return smoothstep(pct - 0.02, pct, st.y) - smoothstep(pct, pct + 0.02, st.y);
+  float length = 0.01;
+  return smoothstep(pct - length, pct, st.y) - smoothstep(pct, pct + length, st.y);
 }
 
 void main(){
@@ -31,13 +32,28 @@ void main(){
   // vec2 mt = u_mouse.xy / u_resolution;
 
   float y = smoothstep(0.0, 1.0, st.x);
+  float timeDelta = u_time / 1.0;
+  // y = sin(st.x / 0.15) * timeDelta + 0.5;
+  // y = sin(st.x / 0.15) * 0.25 + 0.5;
+  y = (sin(st.x * PI + timeDelta * 1.0)) * 0.25 + 0.5;
 
   vec3 color = vec3(y);
 
   // // plot a line
   float pct = plot(st, y);
-  color = (1.0 - pct) * color + 0.0 * vec3(0.0,1.0,0.0);
-  color = (1.0 - pct) * color + pct * vec3(0.0,1.0,0.0);
+  // pct = sin(pct);
+
+  vec3 backgroundColor = vec3(0.0);
+
+  vec3 green = vec3(0.0, 1.0, 0.0);
+  vec3 blue = vec3(0.0, 0.0, 1.0);
+  vec3 lineColor = mix(green, blue, abs(sin(u_time)));
+
+  color = backgroundColor;
+  color = color + pct * lineColor;
+
+  
+  // color = (1.0 - pct) * color + pct * vec3(0.0,1.0,0.0);
 
   gl_FragColor = vec4(color, 1.0);
 
