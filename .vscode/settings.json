@@ -1,4 +1,12 @@
 {
-    "editor.tabSize": 2,
-    "editor.formatOnSave": false
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true
+  // "editor.codeActionsOnSave": {
+  //   "source.fixAll.eslint": true
+  // },
+  // "[glsl]": {
+  //   "editor.codeActionsOnSave": {
+  //     "source.fixAll.eslint": false
+  //   }
+  // }
 }
