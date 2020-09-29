@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <link rel="stylesheet" href="./style.css" />
+
+    <!-- gsap -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/CSSRulePlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/Draggable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/EaselPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/MotionPathPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/PixiPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/TextPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/EasePack.min.js"></script>
+
+    <script src="/libs/gsap/CustomEase.min.js"></script>
+
+    <!--
+    CustomEase.min.js is a perk available to people with a free account on GreenSock.com and is not available on a CDN. Download it from your GreenSock account and include it locally like this:
+    
+    <script src="/[YOUR_DIRECTORY]/CustomEase.min.js"></script>
+    
+    Sign up for free at GreenSock.com/register.
+    -->
+    <!--
+    DrawSVGPlugin.min.js, GSDevTools.min.js, InertiaPlugin.min.js, MorphSVGPlugin.min.js, MotionPathHelper.min.js, Physics2DPlugin.min.js, PhysicsPropsPlugin.min.js, ScrambleTextPlugin.min.js, SplitText.min.js, CustomBounce.min.js, and CustomWiggle.min.js are Club GreenSock perks which are not available on a CDN. Download them from your GreenSock account and include them locally like this:
+    
+    <script src="/[YOUR_DIRECTORY]/DrawSVGPlugin.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/GSDevTools.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/InertiaPlugin.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/MorphSVGPlugin.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/MotionPathHelper.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/Physics2DPlugin.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/PhysicsPropsPlugin.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/ScrambleTextPlugin.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/SplitText.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/CustomBounce.min.js"></script>
+    <script src="/[YOUR_DIRECTORY]/CustomWiggle.min.js"></script>
+    
+    Sign up at GreenSock.com/club.
+    -->
+  </head>
+
+  <body>
+    <div id="wrapper" class="ready-player-one">
+      <div class="main">
+        <img src="./assets/logo.png" alt="" class="logo" />
+        <img src="./assets/actor.png" alt="" class="actor" id="actor" />
+        <img src="./assets/tunnel-1.jpg" alt="" class="tunnel" id="tunnel" />
+
+        <a href="javascript:;" id="enter-text" class="enter-text">
+          <span>PRESS</span>
+          <span>START</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- scripts -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.0/gsap.min.js"></script> -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.5.10/webfont.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script> -->
+    <script src="script.js"></script>
+  </body>
+</html>
