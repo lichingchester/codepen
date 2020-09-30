@@ -39,6 +39,7 @@ float noise(vec2 st){
 
 float shape(vec2 st,float radius){
   st=vec2(.5)-st;
+  
   float r=length(st)*2.;
   float a=atan(st.y,st.x);
   float m=abs(mod(a+u_time*2.,3.14*2.)-3.14)/3.6;
@@ -46,9 +47,15 @@ float shape(vec2 st,float radius){
   // m+=noise(st+u_time*.1)*.5;
   // a*=1.+abs(atan(u_time*.2))*.1;
   // a*=1.+noise(st+u_time*.1)*.1;
-  f+=sin(a*50.)*noise(st+u_time*.1)*.1;
-  f+=(sin(a*20.)*.1*pow(m,2.));
-  return 1.-smoothstep(f,f+.007,r);
+  
+  // f+=sin(a*50.)*noise(st+u_time*.1)*.1;
+  f+=noise(st+u_time*.1);
+  // f+=sin(a*50.);
+  
+  // f+=(sin(a*20.)*.1*pow(m,2.));
+  
+  return 1.-smoothstep(f,f+.003,r);
+  // return 1.-smoothstep(f,f+.007,r);
 }
 
 float shapeBorder(vec2 st,float radius,float width){
@@ -58,7 +65,7 @@ float shapeBorder(vec2 st,float radius,float width){
 
 void main(){
   vec2 st=gl_FragCoord.xy/u_resolution.xy;
-  vec3 color=vec3(1.)*shapeBorder(st,.8,.02);
+  vec3 color=vec3(1.)*shapeBorder(st,.8,.004);
   
-  gl_FragColor=vec4(1.-color,1.);
+  gl_FragColor=vec4(1.*color,1.);
 }
