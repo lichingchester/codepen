@@ -18,33 +18,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/ScrollToPlugin.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/EasePack.min.js"></script>
-
     <script src="/libs/gsap/CustomEase.min.js"></script>
 
-    <!--
-    CustomEase.min.js is a perk available to people with a free account on GreenSock.com and is not available on a CDN. Download it from your GreenSock account and include it locally like this:
-    
-    <script src="/[YOUR_DIRECTORY]/CustomEase.min.js"></script>
-    
-    Sign up for free at GreenSock.com/register.
-    -->
-    <!--
-    DrawSVGPlugin.min.js, GSDevTools.min.js, InertiaPlugin.min.js, MorphSVGPlugin.min.js, MotionPathHelper.min.js, Physics2DPlugin.min.js, PhysicsPropsPlugin.min.js, ScrambleTextPlugin.min.js, SplitText.min.js, CustomBounce.min.js, and CustomWiggle.min.js are Club GreenSock perks which are not available on a CDN. Download them from your GreenSock account and include them locally like this:
-    
-    <script src="/[YOUR_DIRECTORY]/DrawSVGPlugin.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/GSDevTools.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/InertiaPlugin.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/MorphSVGPlugin.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/MotionPathHelper.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/Physics2DPlugin.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/PhysicsPropsPlugin.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/ScrambleTextPlugin.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/SplitText.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/CustomBounce.min.js"></script>
-    <script src="/[YOUR_DIRECTORY]/CustomWiggle.min.js"></script>
-    
-    Sign up at GreenSock.com/club.
-    -->
+    <!-- swiper -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper/swiper-bundle.min.css"
+    />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
   </head>
 
   <body>
@@ -52,12 +33,46 @@
       <div class="main">
         <img src="./assets/logo.png" alt="" class="logo" />
         <img src="./assets/actor.png" alt="" class="actor" id="actor" />
-        <img src="./assets/tunnel-1.jpg" alt="" class="tunnel" id="tunnel" />
 
         <a href="javascript:;" id="enter-text" class="enter-text">
           <span>PRESS</span>
           <span>START</span>
         </a>
+      </div>
+
+      <div class="inside">
+        <img src="./assets/logo.png" alt="" class="logo" />
+
+        <img src="./assets/lang.svg" alt="" class="lang" />
+        <img src="./assets/menu.svg" alt="" class="menu" />
+        <img src="./assets/media.svg" alt="" class="media" />
+        <img src="./assets/share.svg" alt="" class="share" />
+
+        <img src="./assets/tunnel-1.png" alt="" class="tunnel" id="tunnel" />
+      </div>
+
+      <div id="slider" class="overlap-slider">
+        <!-- Swiper -->
+        <div class="swiper-container">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide">
+              <img src="./assets/slider-1.png" alt="" />
+            </div>
+            <div class="swiper-slide">
+              <img src="./assets/slider-2.png" alt="" />
+            </div>
+            <div class="swiper-slide">
+              <img src="./assets/slider-3.png" alt="" />
+            </div>
+            <div class="swiper-slide">
+              <img src="./assets/slider-4.png" alt="" />
+            </div>
+            <div class="swiper-slide">
+              <img src="./assets/slider-5.png" alt="" />
+            </div>
+          </div>
+          <div class="swiper-scrollbar"></div>
+        </div>
       </div>
     </div>
 

@@ -29,6 +29,7 @@
     border-radius: 20px;
     box-shadow: 20px 20px 30px 0 rgba(0, 0, 0, 0.16);
     overflow: hidden;
+    z-index: 2;
   }
 
   .logo {
@@ -59,14 +60,23 @@
     bottom: 0;
     height: 600px;
     transform: translateX(-50%);
+    transform-origin: 50.5% 44%;
+    // filter: blur(3px);
+    // transition: filter 1s cubic-bezier(0.25, 1, 0.5, 1);
   }
+  // &.state-1 {
+  //   .actor {
+  //     filter: blur(0);
+  //   }
+  // }
 
   .enter-text {
     position: absolute;
     left: 50%;
     top: 50%;
+    display: flex;
     transform: translate(-50%, -50%);
-    font-size: 93px;
+    font-size: 83px;
     white-space: nowrap;
     color: white;
     cursor: pointer;
@@ -78,8 +88,12 @@
       opacity: 0.7;
     }
 
+    span {
+      display: block;
+    }
+
     span:first-child {
-      margin-right: 320px;
+      margin-right: 390px;
       margin-left: 10px;
     }
   }
@@ -88,9 +102,132 @@
     position: absolute;
     left: 50%;
     top: 50%;
+    width: 100%;
     transform: translate(-49.5%, -50%) scale(1.1);
     opacity: 0;
     visibility: hidden;
     // z-index: 2;
+  }
+
+  // inside page
+  .inside {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1252px;
+    height: 704px;
+    transform: translate(-50%, -50%);
+    border-radius: 20px;
+    box-shadow: 20px 20px 30px 0 rgba(0, 0, 0, 0.16);
+    overflow: hidden;
+    z-index: 1;
+
+    .logo,
+    .lang,
+    .menu,
+    .media,
+    .share {
+      position: absolute;
+      z-index: 4;
+      opacity: 0;
+      visibility: hidden;
+    }
+    .lang {
+      left: 50px;
+      top: 50px;
+    }
+    .menu {
+      right: 50px;
+      top: 50px;
+    }
+    .media {
+      left: 50px;
+      bottom: 50px;
+    }
+    .share {
+      right: 50px;
+      bottom: 50px;
+    }
+  }
+  &.state-2 .inside {
+    z-index: 3;
+
+    .logo,
+    .lang,
+    .menu,
+    .media,
+    .share {
+      opacity: 1;
+      visibility: visible;
+      transition: 0.6s ease-in-out 1s;
+    }
+  }
+
+  // overlap-slider
+  .overlap-slider {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1552px;
+    height: auto;
+    transform: translate(-50%, -50%);
+    visibility: hidden;
+    z-index: 1;
+  }
+  &.state-2 .overlap-slider {
+    z-index: 4;
+  }
+
+  .swiper-container {
+    width: 526px;
+    overflow: visible;
+  }
+  .swiper-slide {
+    width: 100%;
+    opacity: 0;
+
+    &:before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 83px;
+      height: 83px;
+      background-image: url("./assets/play.png");
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0;
+      transition: 0.5s ease-in-out;
+    }
+
+    &.swiper-slide-prev,
+    &.swiper-slide-active,
+    &.swiper-slide-next {
+      opacity: 1;
+    }
+
+    &.swiper-slide-active {
+      &:before {
+        opacity: 1;
+        transition: 0.5s ease-in-out 0.2s;
+      }
+    }
+  }
+  .swiper-container-horizontal > .swiper-scrollbar {
+    bottom: -70px;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.5);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150%;
+
+    .swiper-scrollbar-drag {
+      background-color: #62bbff;
+      height: 150%;
+      top: -1px;
+      box-shadow: 0 0 4px 1px #62bbff;
+    }
   }
 }

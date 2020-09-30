@@ -32,6 +32,7 @@
   -webkit-box-shadow: 20px 20px 30px 0 rgba(0, 0, 0, 0.16);
           box-shadow: 20px 20px 30px 0 rgba(0, 0, 0, 0.16);
   overflow: hidden;
+  z-index: 2;
 }
 
 .ready-player-one .logo {
@@ -68,15 +69,20 @@
   height: 600px;
   -webkit-transform: translateX(-50%);
           transform: translateX(-50%);
+  -webkit-transform-origin: 50.5% 44%;
+          transform-origin: 50.5% 44%;
 }
 
 .ready-player-one .enter-text {
   position: absolute;
   left: 50%;
   top: 50%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
   -webkit-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
-  font-size: 93px;
+  font-size: 83px;
   white-space: nowrap;
   color: white;
   cursor: pointer;
@@ -89,8 +95,12 @@
   opacity: 0.7;
 }
 
+.ready-player-one .enter-text span {
+  display: block;
+}
+
 .ready-player-one .enter-text span:first-child {
-  margin-right: 320px;
+  margin-right: 390px;
   margin-left: 10px;
 }
 
@@ -98,9 +108,143 @@
   position: absolute;
   left: 50%;
   top: 50%;
+  width: 100%;
   -webkit-transform: translate(-49.5%, -50%) scale(1.1);
           transform: translate(-49.5%, -50%) scale(1.1);
   opacity: 0;
   visibility: hidden;
+}
+
+.ready-player-one .inside {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1252px;
+  height: 704px;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+  border-radius: 20px;
+  -webkit-box-shadow: 20px 20px 30px 0 rgba(0, 0, 0, 0.16);
+          box-shadow: 20px 20px 30px 0 rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ready-player-one .inside .logo,
+.ready-player-one .inside .lang,
+.ready-player-one .inside .menu,
+.ready-player-one .inside .media,
+.ready-player-one .inside .share {
+  position: absolute;
+  z-index: 4;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ready-player-one .inside .lang {
+  left: 50px;
+  top: 50px;
+}
+
+.ready-player-one .inside .menu {
+  right: 50px;
+  top: 50px;
+}
+
+.ready-player-one .inside .media {
+  left: 50px;
+  bottom: 50px;
+}
+
+.ready-player-one .inside .share {
+  right: 50px;
+  bottom: 50px;
+}
+
+.ready-player-one.state-2 .inside {
+  z-index: 3;
+}
+
+.ready-player-one.state-2 .inside .logo,
+.ready-player-one.state-2 .inside .lang,
+.ready-player-one.state-2 .inside .menu,
+.ready-player-one.state-2 .inside .media,
+.ready-player-one.state-2 .inside .share {
+  opacity: 1;
+  visibility: visible;
+  -webkit-transition: 0.6s ease-in-out 1s;
+  transition: 0.6s ease-in-out 1s;
+}
+
+.ready-player-one .overlap-slider {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1552px;
+  height: auto;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+  visibility: hidden;
+  z-index: 1;
+}
+
+.ready-player-one.state-2 .overlap-slider {
+  z-index: 4;
+}
+
+.ready-player-one .swiper-container {
+  width: 526px;
+  overflow: visible;
+}
+
+.ready-player-one .swiper-slide {
+  width: 100%;
+  opacity: 0;
+}
+
+.ready-player-one .swiper-slide:before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+  width: 83px;
+  height: 83px;
+  background-image: url("./assets/play.png");
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0;
+  -webkit-transition: 0.5s ease-in-out;
+  transition: 0.5s ease-in-out;
+}
+
+.ready-player-one .swiper-slide.swiper-slide-prev, .ready-player-one .swiper-slide.swiper-slide-active, .ready-player-one .swiper-slide.swiper-slide-next {
+  opacity: 1;
+}
+
+.ready-player-one .swiper-slide.swiper-slide-active:before {
+  opacity: 1;
+  -webkit-transition: 0.5s ease-in-out 0.2s;
+  transition: 0.5s ease-in-out 0.2s;
+}
+
+.ready-player-one .swiper-container-horizontal > .swiper-scrollbar {
+  bottom: -70px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+  width: 150%;
+}
+
+.ready-player-one .swiper-container-horizontal > .swiper-scrollbar .swiper-scrollbar-drag {
+  background-color: #62bbff;
+  height: 150%;
+  top: -1px;
+  -webkit-box-shadow: 0 0 4px 1px #62bbff;
+          box-shadow: 0 0 4px 1px #62bbff;
 }
 /*# sourceMappingURL=style.css.map */
