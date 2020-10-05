@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Ready-Player-One";
-  src: url("./assets/Ready-Player-One.otf");
+  src: url("./assets/rpo--Ready-Player-One.otf");
 }
 
 .ready-player-one {
@@ -9,7 +9,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-image: url("./assets/back-background.jpg");
+  background-image: url("./assets/rpo--back-background.jpg");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -24,7 +24,7 @@
   height: 704px;
   -webkit-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
-  background-image: url("./assets/front-background.jpg");
+  background-image: url("./assets/rpo--front-background.jpg");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -199,7 +199,10 @@
 
 .ready-player-one .swiper-slide {
   width: 100%;
+  height: 316px;
   opacity: 0;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .ready-player-one .swiper-slide:before {
@@ -211,7 +214,7 @@
           transform: translate(-50%, -50%);
   width: 83px;
   height: 83px;
-  background-image: url("./assets/play.png");
+  background-image: url("./assets/rpo--play.png");
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
@@ -246,5 +249,41 @@
   top: -1px;
   -webkit-box-shadow: 0 0 4px 1px #62bbff;
           box-shadow: 0 0 4px 1px #62bbff;
+}
+
+.ready-player-one .follow-us {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 1.5rem 2rem;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: reverse;
+      -ms-flex-direction: column-reverse;
+          flex-direction: column-reverse;
+}
+
+.ready-player-one .follow-us .author {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  color: #fff;
+  text-decoration: none;
+  margin-top: 0.5rem;
+}
+
+.ready-player-one .follow-us .author img {
+  width: 25px;
+  min-width: 25px;
+  max-width: 25px;
+  width: auto;
+  margin-right: 0.5rem;
 }
 /*# sourceMappingURL=style.css.map */
