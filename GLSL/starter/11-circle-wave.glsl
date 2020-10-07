@@ -69,6 +69,7 @@ float shape(vec2 st,float radius,float timeDelta){
   // f+=sin(a*50.);
   
   // f+=(sin(a*20.)*.1*pow(m,2.));
+  // f+=(sin(20.)*.1);
   
   return 1.-smoothstep(f,f+.003,r);
   // return 1.-smoothstep(f,f+.007,r);
