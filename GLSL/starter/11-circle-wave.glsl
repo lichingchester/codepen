@@ -13,8 +13,8 @@ uniform vec2 u_mouse;
 uniform float u_time;
 
 vec2 random2(vec2 st){
-  st=vec2(dot(st,vec2(127.1,311.7)),
-  dot(st,vec2(269.5,183.3)));
+  st=vec2(dot(st,vec2(127.1,311.7)),dot(st,vec2(269.5,183.3)));
+  
   return-1.+2.*fract(sin(st)*43758.5453123);
 }
 
@@ -32,24 +32,26 @@ float noise(vec2 st){
   dot(random2(i+vec2(1.,1.)),f-vec2(1.,1.)),u.x),u.y);
 }
 
-// mat2 rotate2d(float _angle){
-  //   return mat2(cos(_angle),-sin(_angle),
-  //   sin(_angle),cos(_angle));
-// }
+mat2 rotate2d(float _angle){
+  return mat2(cos(_angle),-sin(_angle),
+  sin(_angle),cos(_angle));
+}
 
 float shape(vec2 st,float radius){
   st=vec2(.5)-st;
+  st=rotate2d(u_time*.5)*st;
   
   float r=length(st)*2.;
-  float a=atan(st.y,st.x);
+  float a=atan(st.y-0.,st.x-0.);
   float m=abs(mod(a+u_time*2.,3.14*2.)-3.14)/3.6;
   float f=radius;
   // m+=noise(st+u_time*.1)*.5;
   // a*=1.+abs(atan(u_time*.2))*.1;
   // a*=1.+noise(st+u_time*.1)*.1;
   
-  // f+=sin(a*50.)*noise(st+u_time*.1)*.1;
-  f+=noise(st+u_time*.1);
+  f+=sin(a*5.)*noise(st+u_time*.1)*.1;
+  // f+=noise(st+u_time*.1);
+  // f+=noise(st+sin(u_time));
   // f+=sin(a*50.);
   
   // f+=(sin(a*20.)*.1*pow(m,2.));
