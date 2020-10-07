@@ -87,7 +87,7 @@ float snoise(vec2 v){
       vec3 color=vec3(0.);
       
       // Scale the space in order to see the function
-      st*=10.;
+      st*=5.;
       
       color=vec3(snoise(st)*.5+.5);
       

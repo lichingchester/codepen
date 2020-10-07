@@ -37,21 +37,35 @@ mat2 rotate2d(float _angle){
   sin(_angle),cos(_angle));
 }
 
-float shape(vec2 st,float radius){
+float shape(vec2 st,float radius,float timeDelta){
+  float time=u_time+timeDelta;
+  
+  // move to center
   st=vec2(.5)-st;
-  st=rotate2d(u_time*.5)*st;
+  
+  // move the circle
+  // st+=vec2(sin(u_time))*.1;
+  // st=vec2(cos(u_time))*.1;
+  // st+=vec2(random2(vec2(u_time,0.)))*.05;
+  st+=vec2(sin(u_time+2.),sin(u_time-2.))*.01;
+  // st+=vec2(cos(time),sin(time))*.05;
+  
+  // rotate the circle
+  st*=rotate2d(time*.15);
   
   float r=length(st)*2.;
   float a=atan(st.y-0.,st.x-0.);
-  float m=abs(mod(a+u_time*2.,3.14*2.)-3.14)/3.6;
+  float m=abs(mod(a+time*2.,3.14*2.)-3.14)/3.6;
   float f=radius;
-  // m+=noise(st+u_time*.1)*.5;
-  // a*=1.+abs(atan(u_time*.2))*.1;
-  // a*=1.+noise(st+u_time*.1)*.1;
+  // m+=noise(st+time*.1)*.5;
+  // a*=1.+abs(atan(time*.2))*.1;
+  // a*=1.+noise(st+time*.1)*.1;
   
-  f+=sin(a*5.)*noise(st+u_time*.1)*.1;
-  // f+=noise(st+u_time*.1);
-  // f+=noise(st+sin(u_time));
+  // f+=sin(a*5.)*sin(time)*.1;
+  // f+=noise(st+time*.5)*0.2;
+  f+=sin(a*3.)*noise(st+time*.2)*.5;
+  // f+=noise(st+time*.1);
+  // f+=noise(st+sin(time));
   // f+=sin(a*50.);
   
   // f+=(sin(a*20.)*.1*pow(m,2.));
@@ -60,14 +74,26 @@ float shape(vec2 st,float radius){
   // return 1.-smoothstep(f,f+.007,r);
 }
 
-float shapeBorder(vec2 st,float radius,float width){
+float shapeBorder(vec2 st,float radius,float width,float timeDelta){
   // return shape(st,radius);
-  return shape(st,radius)-shape(st,radius-width);
+  return shape(st,radius,timeDelta)-shape(st,radius-width,timeDelta);
 }
 
 void main(){
   vec2 st=gl_FragCoord.xy/u_resolution.xy;
-  vec3 color=vec3(1.)*shapeBorder(st,.8,.004);
+  vec3 color=vec3(0.);
   
-  gl_FragColor=vec4(1.*color,1.);
+  for(int i=0;i<25;++i){
+    // color+=vec3(1.)*shapeBorder(st,.8,.004,float(i)/10.+u_time);
+    color+=vec3(1.)*shapeBorder(st,.8,.004,float(i)/7.);
+  }
+  // vec3 color2=vec3(1.)*shapeBorder(st,.8,.004,.2);
+  // vec3 color3=vec3(1.)*shapeBorder(st,.8,.004,.4);
+  // vec3 color4=vec3(1.)*shapeBorder(st,.8,.004,.6);
+  // vec3 color5=vec3(1.)*shapeBorder(st,.8,.004,.8);
+  // vec3 color6=vec3(1.)*shapeBorder(st,.8,.004,1.);
+  
+  // color=color1+color2+color3+color4+color5+color6;
+  
+  gl_FragColor=vec4(color,1.);
 }
