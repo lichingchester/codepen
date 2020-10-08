@@ -84,9 +84,9 @@ void main(){
   vec2 st=gl_FragCoord.xy/u_resolution.xy;
   vec3 color=vec3(0.);
   
-  for(int i=0;i<25;++i){
+  for(float i=0.;i<25.;i+=1.){
     // color+=vec3(1.)*shapeBorder(st,.8,.004,float(i)/10.+u_time);
-    color+=vec3(1.)*shapeBorder(st,.8,.004,float(i)/7.);
+    color+=vec3(i/10.,i/30.,i/20.)*shapeBorder(st,.8,.004,i/7.);
   }
   // vec3 color2=vec3(1.)*shapeBorder(st,.8,.004,.2);
   // vec3 color3=vec3(1.)*shapeBorder(st,.8,.004,.4);
