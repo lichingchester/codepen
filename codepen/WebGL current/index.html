@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+
+      .webgl {
+        position: fixed;
+        left: 0;
+        top: 0;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="webgl"></canvas>
+
+    <script src="CCapture.all.min.js"></script>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+    ></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@<version>/build/three.module.js"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
+      import { OrbitControls } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
+
+      import { EffectComposer } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/postprocessing/EffectComposer.js";
+      import { RenderPass } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/postprocessing/RenderPass.js";
+      import { UnrealBloomPass } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/postprocessing/UnrealBloomPass.js";
+
+      // var capturer = new CCapture({ format: "webm" });
+      // capturer.start();
+
+      const params = {
+        exposure: 0.4,
+        bloomStrength: 0.4,
+        // bloomThreshold: 0.01,
+        bloomRadius: 1.5,
+
+        // exposure: 0.9,
+        // bloomStrength: 0.9,
+        // // bloomThreshold: 0.01,
+        // bloomRadius: 1.5,
+      };
+
+      // Canvas
+      const canvas = document.querySelector("canvas.webgl");
+
+      // Scene
+      const scene = new THREE.Scene();
+
+      // Object
+      const geometry = new THREE.PlaneGeometry(3, 2, 100, 100);
+
+      const uniforms = {
+        uAmplitude: {
+          value: 1.0,
+        },
+        uTime: {
+          value: 0,
+        },
+        uColor: {
+          value: new THREE.Color(0xff2200),
+        },
+      };
+
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: `
+            uniform float uTime;
+
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            varying float vNoise;
+
+            vec3 mod289(vec3 x)
+            {
+              return x - floor(x * (1.0 / 289.0)) * 289.0;
+            }
+
+            vec4 mod289(vec4 x)
+            {
+              return x - floor(x * (1.0 / 289.0)) * 289.0;
+            }
+
+            vec4 permute(vec4 x)
+            {
+              return mod289(((x*34.0)+10.0)*x);
+            }
+
+            vec4 taylorInvSqrt(vec4 r)
+            {
+              return 1.79284291400159 - 0.85373472095314 * r;
+            }
+
+            vec3 fade(vec3 t) {
+              return t*t*t*(t*(t*6.0-15.0)+10.0);
+            }
+
+            float pnoise(vec3 P, vec3 rep)
+            {
+              vec3 Pi0 = mod(floor(P), rep); // Integer part, modulo period
+              vec3 Pi1 = mod(Pi0 + vec3(1.0), rep); // Integer part + 1, mod period
+              Pi0 = mod289(Pi0);
+              Pi1 = mod289(Pi1);
+              vec3 Pf0 = fract(P); // Fractional part for interpolation
+              vec3 Pf1 = Pf0 - vec3(1.0); // Fractional part - 1.0
+              vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
+              vec4 iy = vec4(Pi0.yy, Pi1.yy);
+              vec4 iz0 = Pi0.zzzz;
+              vec4 iz1 = Pi1.zzzz;
+
+              vec4 ixy = permute(permute(ix) + iy);
+              vec4 ixy0 = permute(ixy + iz0);
+              vec4 ixy1 = permute(ixy + iz1);
+
+              vec4 gx0 = ixy0 * (1.0 / 7.0);
+              vec4 gy0 = fract(floor(gx0) * (1.0 / 7.0)) - 0.5;
+              gx0 = fract(gx0);
+              vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
+              vec4 sz0 = step(gz0, vec4(0.0));
+              gx0 -= sz0 * (step(0.0, gx0) - 0.5);
+              gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+
+              vec4 gx1 = ixy1 * (1.0 / 7.0);
+              vec4 gy1 = fract(floor(gx1) * (1.0 / 7.0)) - 0.5;
+              gx1 = fract(gx1);
+              vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
+              vec4 sz1 = step(gz1, vec4(0.0));
+              gx1 -= sz1 * (step(0.0, gx1) - 0.5);
+              gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+
+              vec3 g000 = vec3(gx0.x,gy0.x,gz0.x);
+              vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
+              vec3 g010 = vec3(gx0.z,gy0.z,gz0.z);
+              vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
+              vec3 g001 = vec3(gx1.x,gy1.x,gz1.x);
+              vec3 g101 = vec3(gx1.y,gy1.y,gz1.y);
+              vec3 g011 = vec3(gx1.z,gy1.z,gz1.z);
+              vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+
+              vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+              g000 *= norm0.x;
+              g010 *= norm0.y;
+              g100 *= norm0.z;
+              g110 *= norm0.w;
+              vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+              g001 *= norm1.x;
+              g011 *= norm1.y;
+              g101 *= norm1.z;
+              g111 *= norm1.w;
+
+              float n000 = dot(g000, Pf0);
+              float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+              float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
+              float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+              float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
+              float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+              float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
+              float n111 = dot(g111, Pf1);
+
+              vec3 fade_xyz = fade(Pf0);
+              vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+              vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+              float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x); 
+              return 2.2 * n_xyz;
+            }
+
+            float turbulence( vec3 p ) {
+              float w = 100.0;
+              float t = -.5;
+
+              for (float f = 1.0 ; f <= 10.0 ; f++ ){
+                float power = pow( 2.0, f );
+                t += abs( pnoise( vec3( power * p ), vec3( 10.0, 10.0, 10.0 ) ) / power );
+              }
+
+              return t;
+            }
+
+            float random(in vec2 st){
+              return dot(st.x, st.y);
+              return sin(st.x);
+              return fract(st.x);
+              // return ((dot(st.xy, vec2(12.9898, 78.233))));
+              // return (sin(dot(st.xy, vec2(12.9898, 78.233))));
+              // return fract(sin(dot(st.xy, vec2(12.9898, 78.233))));
+              // return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+            }
+
+            void main() {
+              vUv = uv;
+              vNormal = normal;
+
+              float displacement = 0.0;
+              float b = 0.0;
+
+              // vNoise = 10.0 * -0.10 * turbulence( 0.75 * normal + (uTime * 0.01) ) - 0.05;
+              // vNoise = 10.0 * -0.10 * turbulence( .5 * normal + (sin(uTime) * 0.5 ) );
+              // vNoise += sin(uTime) * 0.1;
+              // vNoise = 10.0 * -0.10 * turbulence( .5 * normal + uTime * 0.01 );
+              // b = 10.0 * pnoise( 0.31 * position + vec3(uTime * 0.01), vec3( 100.0 ) ); 
+              // b += (cos(uTime * 20.0)); 
+              // b = 10.0 * pnoise( 0.01 * position + vec3(sin(uTime) * 2.0), vec3( 100.0 ) );
+              // b = 10.0 * pnoise( 0.01 * position + vec3(uTime * 2.0), vec3( 100.0 ) );
+              // displacement = - 10.0 + b;
+              // displacement = - 10.0 * vNoise + b;
+              // displacement *= 2.5;
+
+              
+              // vec3 newPosition = position + normal * displacement;
+              // vec3 newPosition = position + displacement;
+              // gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+              
+              vec4 modalPosition = modelMatrix * vec4( position, 1.0 );  
+              
+              // displacement = dot(modalPosition.x, modalPosition.y);
+              // displacement = dot(modalPosition.x + 0.5, modalPosition.y);
+              displacement = random(modalPosition.xy) * 0.5;
+
+              modalPosition.z += displacement;
+              // modalPosition.z += sin((modalPosition.y + displacement) * 5.0);
+              // modalPosition.z += sin(modalPosition.y * 10.0);
+
+              // modalPosition.x = 1.0;
+              // modalPosition.x = .5;
+              // modalPosition.x += dot(1.,0.8);
+              // modalPosition.xy += dot(vec2(0.,1.), vec2(0.5,0.7));
+
+              gl_Position = projectionMatrix * viewMatrix * modalPosition;
+            }
+              `,
+        fragmentShader: `
+            uniform float uTime;
+            uniform vec3 uColor;
+
+            varying float vNoise;
+            varying vec3 vNormal;
+            varying vec2 vUv;
+            
+            float random( vec3 scale, float seed ){
+              return fract( sin( dot( gl_FragCoord.xyz + seed, scale ) ) * 43758.5453 + seed ) ;
+            }
+
+            void main() {
+              // float r = 0.001 * random( vec3( 12.9898, 78.233, 151.7182 ), 0.0 );
+              // vec2 tPos = vec2( 0, 1.3 * vNoise + r );
+              // vec4 color = vec4(vUv.x  - 0.5, vUv.y - 0.5,vNoise,.0);
+              // vec4 color = vec4(vNoise,vNoise,vNoise,.0);
+              // vec4 color = vec4(vNoise, .0,vNoise,.0);
+              // vec4 color = vec4(vNormal, vNoise);
+
+              // gl_FragColor = vec4( color.rgb, 1.0 );
+              gl_FragColor = vec4(vUv, 1.0, 1.0 );
+            }
+              `,
+      });
+
+      shaderMaterial.transparent = true;
+      shaderMaterial.wireframe = true;
+
+      const sphere = new THREE.Mesh(geometry, shaderMaterial);
+      scene.add(sphere);
+
+      // Sizes
+      const sizes = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(
+        30,
+        sizes.width / sizes.height
+      );
+      camera.position.z = 7;
+      scene.add(camera);
+
+      // Controls
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+      });
+      renderer.toneMapping = THREE.ReinhardToneMapping;
+      renderer.setSize(sizes.width, sizes.height);
+      renderer.render(scene, camera);
+
+      // Post processing
+      const renderScene = new RenderPass(scene, camera);
+
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.5,
+        0.4,
+        0.85
+      );
+      bloomPass.threshold = params.bloomThreshold;
+      bloomPass.strength = params.bloomStrength;
+      bloomPass.radius = params.bloomRadius;
+
+      const composer = new EffectComposer(renderer);
+      composer.addPass(renderScene);
+      composer.addPass(bloomPass);
+
+      // Events
+      window.addEventListener("resize", () => {
+        sizes.width = window.innerWidth;
+        sizes.height = window.innerHeight;
+
+        camera.aspect = sizes.width / sizes.height;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(sizes.width, sizes.height);
+        composer.setSize(sizes.width, sizes.height);
+      });
+
+      /**
+       * Animate
+       */
+      const clock = new THREE.Clock();
+
+      const tick = () => {
+        const elapsedTime = clock.getElapsedTime();
+        // const elapsedTime = Date.now() * 0.01;
+
+        // update material
+        shaderMaterial.uniforms.uTime.value = elapsedTime;
+
+        // sphere.rotation.x = 0.8;
+        // sphere.rotation.z = 1.1;
+
+        // Update controls
+        controls.update();
+
+        // Render
+        renderer.render(scene, camera);
+        // composer.render();
+
+        // Record
+        // capturer.capture(canvas);
+
+        // Call tick again on the next frame
+        window.requestAnimationFrame(tick);
+      };
+
+      tick();
+
+      // setTimeout(() => {
+      //   capturer.stop();
+      //   capturer.save();
+      // }, 20000);
+    </script>
+  </body>
+</html>
