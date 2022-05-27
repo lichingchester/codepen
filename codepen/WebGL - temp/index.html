@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+
+      .webgl {
+        position: fixed;
+        left: 0;
+        top: 0;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="webgl"></canvas>
+
+    <script src="CCapture.all.min.js"></script>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+    ></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@<version>/build/three.module.js"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
+      import { OrbitControls } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
+
+      // var capturer = new CCapture({ format: "webm" });
+      // capturer.start();
+
+      // Canvas
+      const canvas = document.querySelector("canvas.webgl");
+
+      // Scene
+      const scene = new THREE.Scene();
+
+      // Object
+      const geometry = new THREE.PlaneGeometry(2, 3, 100, 100);
+      const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const mesh = new THREE.Mesh(geometry, material);
+      // scene.add(mesh);
+
+      const count = geometry.attributes.position.count;
+      const randoms = new Float32Array(count);
+
+      for (let i = 0; i < count; i++) {
+        randoms[i] = Math.random();
+      }
+
+      geometry.setAttribute("aRandom", new THREE.BufferAttribute(randoms, 1));
+
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: {
+            value: new THREE.Color(0xffffff),
+          },
+          uTime: {
+            value: 0,
+          },
+        },
+        vertexShader: `
+            // attribute vec2 uv;
+            attribute float scale;
+            attribute float aRandom;
+            uniform float uTime;
+            
+            varying vec2 vUv;
+
+            const float PI = 3.1415926535897932384626433832795;
+
+            void main(){
+              vUv = uv;
+
+              vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+
+              // modelPosition.z = sin(aRandom) * 0.5;
+              modelPosition.z += sin((modelPosition.y + uTime) * 10.0) * 0.1;
+
+              vec4 viewPosition = viewMatrix * modelPosition;
+              vec4 projectedPosition = projectionMatrix * viewPosition;
+
+              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+              // gl_PointSize = scale * (300.0 / - mvPosition.z);
+              // gl_PointSize = 6.0;
+              // gl_Position = projectionMatrix * mvPosition;
+              gl_Position = projectedPosition;
+
+              
+            }
+              `,
+        fragmentShader: `
+            uniform vec3 uColor;
+
+            varying vec2 vUv;
+
+            void main(){
+              // circle
+              // if(length(gl_PointCoord - vec2(0.5, 0.5)) > 0.475) discard;
+
+              gl_FragColor = vec4(vUv.x, vUv.y, 0.5, 1.0);
+              // gl_FragColor = vec4(uColor, 1.0);
+            }
+              `,
+      });
+      const particles = new THREE.Mesh(geometry, shaderMaterial);
+      scene.add(particles);
+
+      // Sizes
+      const sizes = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        sizes.width / sizes.height
+      );
+      camera.position.z = 3;
+      scene.add(camera);
+
+      // Controls
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+      });
+      renderer.setSize(sizes.width, sizes.height);
+      renderer.render(scene, camera);
+
+      // Events
+      window.addEventListener("resize", () => {
+        sizes.width = window.innerWidth;
+        sizes.height = window.innerHeight;
+
+        camera.aspect = sizes.width / sizes.height;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(sizes.width, sizes.height);
+      });
+
+      /**
+       * Animate
+       */
+      const clock = new THREE.Clock();
+
+      const tick = () => {
+        const elapsedTime = clock.getElapsedTime();
+
+        // update material
+        shaderMaterial.uniforms.uTime.value = elapsedTime;
+
+        // particles.rotation.x = Math.sin(elapsedTime * 0.5);
+        // particles.rotation.y = elapsedTime * 0.7;
+        // particles.rotation.z = elapsedTime * 0.4;
+
+        // Update controls
+        controls.update();
+
+        // Render
+        renderer.render(scene, camera);
+
+        // Record
+        // capturer.capture(canvas);
+
+        // Call tick again on the next frame
+        window.requestAnimationFrame(tick);
+      };
+
+      tick();
+    </script>
+  </body>
+</html>

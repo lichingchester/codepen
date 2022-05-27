@@ -68,7 +68,7 @@
       const scene = new THREE.Scene();
 
       // Object
-      const geometry = new THREE.PlaneGeometry(3, 2, 100, 100);
+      const geometry = new THREE.PlaneGeometry(2, 3, 100, 100);
 
       const uniforms = {
         uAmplitude: {
@@ -197,13 +197,35 @@
             }
 
             float random(in vec2 st){
-              return dot(st.x, st.y);
-              return sin(st.x);
-              return fract(st.x);
+              // return dot(st.x, st.y);
+              // return sin(st.x);
+              // return fract(st.x);
               // return ((dot(st.xy, vec2(12.9898, 78.233))));
               // return (sin(dot(st.xy, vec2(12.9898, 78.233))));
               // return fract(sin(dot(st.xy, vec2(12.9898, 78.233))));
-              // return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+              return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+            }
+
+            float noise(in vec2 st){
+              vec2 i = floor(st);
+              vec2 f = fract(st);
+
+              float a = random(i);
+              float b = random(i + vec2(1.0, 0.0));
+              float c = random(i + vec2(0.0, 1.0));
+              float d = random(i + vec2(1.0, 1.0));
+
+              vec2 u = smoothstep(0.,1.,f);
+              
+              // return mix(a, b, u.x);
+              // return (c - a) * u.y * (1.0 - u.x);
+              // return mix(i.x, f.x, sin(uTime));
+
+              return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+            }
+
+            mat2 rotate2d(float angle){
+              return mat2(cos(angle),-sin(angle),sin(angle),cos(angle));
             }
 
             void main() {
@@ -234,7 +256,10 @@
               
               // displacement = dot(modalPosition.x, modalPosition.y);
               // displacement = dot(modalPosition.x + 0.5, modalPosition.y);
-              displacement = random(modalPosition.xy) * 0.5;
+
+              // displacement = random(modalPosition.xy) * 0.5;
+              vec2 rotateXY = rotate2d(1.0) * modalPosition.xy;
+              displacement = noise(rotateXY + (vec2(uTime))) * 1.0;
 
               modalPosition.z += displacement;
               // modalPosition.z += sin((modalPosition.y + displacement) * 5.0);
@@ -348,8 +373,9 @@
         // update material
         shaderMaterial.uniforms.uTime.value = elapsedTime;
 
-        // sphere.rotation.x = 0.8;
-        // sphere.rotation.z = 1.1;
+        sphere.rotation.x = -0.1;
+        sphere.rotation.y = -0.1;
+        sphere.rotation.z = 0.05;
 
         // Update controls
         controls.update();
