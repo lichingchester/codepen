@@ -203,54 +203,73 @@
               // return ((dot(st.xy, vec2(12.9898, 78.233))));
               // return (sin(dot(st.xy, vec2(12.9898, 78.233))));
               // return fract(sin(dot(st.xy, vec2(12.9898, 78.233))));
+
               return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
             }
 
-            float noise(in vec2 st){
-              vec2 i = floor(st);
-              vec2 f = fract(st);
+            vec2 random2(vec2 st){
+              st = vec2( dot(st,vec2(127.1,311.7)),dot(st,vec2(269.5,183.3)) );
+              return -1.0 + 2.0*fract(sin(st)*43758.5453123);
+            }
 
-              float a = random(i);
-              float b = random(i + vec2(1.0, 0.0));
-              float c = random(i + vec2(0.0, 1.0));
-              float d = random(i + vec2(1.0, 1.0));
+            float noise2(vec2 st) {
+                vec2 i = floor(st);
+                vec2 f = fract(st);
 
-              vec2 u = smoothstep(0.,1.,f);
-              
-              // return mix(a, b, u.x);
-              // return (c - a) * u.y * (1.0 - u.x);
-              // return mix(i.x, f.x, sin(uTime));
+                vec2 u = f*f*(3.0-2.0*f);
 
-              return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+                return mix( mix( dot( random2(i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ),
+                                dot( random2(i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+                            mix( dot( random2(i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ),
+                                dot( random2(i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
             }
 
             mat2 rotate2d(float angle){
               return mat2(cos(angle),-sin(angle),sin(angle),cos(angle));
             }
 
+            float rand(float n){return fract(sin(n) * 43758.5453123);}
+
+            float rand(vec2 n) { 
+              return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+            }
+
+            float noise(float p){
+              float fl = floor(p);
+              float fc = fract(p);
+              return mix(rand(fl), rand(fl + 1.0), fc);
+            }
+              
+            float r2D(vec2 p)
+            {
+                return fract(sin(dot(p, vec2(961.761, 83.153)))*43091.241);
+            }
+
+            float noise(vec2 p)
+            {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                vec2 e = vec2(1., 0.);
+                
+                float v1 = r2D(i+e.yy);
+                float v2 = r2D(i+e.xy);
+                float v3 = r2D(i+e.yx);
+                float v4 = r2D(i+e.xx);
+                
+                vec2 u = smoothstep(0., 1., f);
+                
+                float a = mix(v1, v2, u.x);
+                float b = mix(v3, v4, u.x);
+                
+                return mix(a, b, u.y);
+            }
+
+
             void main() {
               vUv = uv;
               vNormal = normal;
 
               float displacement = 0.0;
-              float b = 0.0;
-
-              // vNoise = 10.0 * -0.10 * turbulence( 0.75 * normal + (uTime * 0.01) ) - 0.05;
-              // vNoise = 10.0 * -0.10 * turbulence( .5 * normal + (sin(uTime) * 0.5 ) );
-              // vNoise += sin(uTime) * 0.1;
-              // vNoise = 10.0 * -0.10 * turbulence( .5 * normal + uTime * 0.01 );
-              // b = 10.0 * pnoise( 0.31 * position + vec3(uTime * 0.01), vec3( 100.0 ) ); 
-              // b += (cos(uTime * 20.0)); 
-              // b = 10.0 * pnoise( 0.01 * position + vec3(sin(uTime) * 2.0), vec3( 100.0 ) );
-              // b = 10.0 * pnoise( 0.01 * position + vec3(uTime * 2.0), vec3( 100.0 ) );
-              // displacement = - 10.0 + b;
-              // displacement = - 10.0 * vNoise + b;
-              // displacement *= 2.5;
-
-              
-              // vec3 newPosition = position + normal * displacement;
-              // vec3 newPosition = position + displacement;
-              // gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
               
               vec4 modalPosition = modelMatrix * vec4( position, 1.0 );  
               
@@ -258,17 +277,10 @@
               // displacement = dot(modalPosition.x + 0.5, modalPosition.y);
 
               // displacement = random(modalPosition.xy) * 0.5;
-              vec2 rotateXY = rotate2d(1.0) * modalPosition.xy;
-              displacement = noise(rotateXY + (vec2(uTime))) * 1.0;
+              vec2 rotateXY = rotate2d(1.5) * modalPosition.xy * 1.5;
+              displacement = noise(rotateXY + (vec2(uTime * 1.))) * 0.5;
 
               modalPosition.z += displacement;
-              // modalPosition.z += sin((modalPosition.y + displacement) * 5.0);
-              // modalPosition.z += sin(modalPosition.y * 10.0);
-
-              // modalPosition.x = 1.0;
-              // modalPosition.x = .5;
-              // modalPosition.x += dot(1.,0.8);
-              // modalPosition.xy += dot(vec2(0.,1.), vec2(0.5,0.7));
 
               gl_Position = projectionMatrix * viewMatrix * modalPosition;
             }
@@ -286,15 +298,11 @@
             }
 
             void main() {
-              // float r = 0.001 * random( vec3( 12.9898, 78.233, 151.7182 ), 0.0 );
-              // vec2 tPos = vec2( 0, 1.3 * vNoise + r );
-              // vec4 color = vec4(vUv.x  - 0.5, vUv.y - 0.5,vNoise,.0);
-              // vec4 color = vec4(vNoise,vNoise,vNoise,.0);
-              // vec4 color = vec4(vNoise, .0,vNoise,.0);
-              // vec4 color = vec4(vNormal, vNoise);
+              float r = 0.001 * random( vec3( 12.9898, 78.233, 151.7182 ), 0.0 );
+              vec2 tPos = vec2( 0, 1.3 * vNoise + r );
+              vec4 color = vec4(vUv.x,0.5,1.-vUv.x,.0);
 
-              // gl_FragColor = vec4( color.rgb, 1.0 );
-              gl_FragColor = vec4(vUv, 1.0, 1.0 );
+              gl_FragColor = vec4( color.rgb, 1.0 );
             }
               `,
       });
