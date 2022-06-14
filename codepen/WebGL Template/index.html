@@ -114,8 +114,8 @@
       const points = extrudePath.getPoints(extrudePath.arcLengthDivisions);
 
       for (let i = 0; i < points.length; i++) {
-        console.log(points[i]);
-        points[i].x += 10;
+        // console.log(points[i]);
+        // points[i].x += 10;
       }
 
       // points.push(...points);
@@ -127,11 +127,12 @@
 
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
       blueMaterial.wireframe = true;
-      // const line = new THREE.Line(lineGeometry, blueMaterial);
-      const lineMesh = new THREE.Mesh(lineGeometry, blueMaterial);
-      lineMesh.rotation.x = Math.PI / 2;
-      // scene.add(line);
-      scene.add(lineMesh);
+      const line = new THREE.Line(lineGeometry, blueMaterial);
+      line.rotation.x = Math.PI / 2;
+      scene.add(line);
+      // const lineMesh = new THREE.Mesh(lineGeometry, blueMaterial);
+      // lineMesh.rotation.x = Math.PI / 2;
+      // scene.add(lineMesh);
 
       // ***************
       var a = 0;
@@ -153,14 +154,20 @@
 
       g.faceIndices = new Uint32Array(faceCount * 3);
       g.vertices = new Float32Array(vertexCount * 3);
-      //g.normals = new Float32Array( vertexCount * 3 );
-      //g.uvs = new Float32Array( vertexCount * 2 );
+      // g.normals = new Float32Array(vertexCount * 3);
+      // g.uvs = new Float32Array(vertexCount * 2);
 
       g.setIndex(new THREE.BufferAttribute(g.faceIndices, 1));
-      g.addAttribute(
+      g.setAttribute(
         "position",
-        new THREE.BufferAttribute(g.vertices, 3).setDynamic(true)
+        new THREE.BufferAttribute(g.vertices, 3).setUsage(
+          THREE.DynamicDrawUsage
+        )
       );
+      // g.addAttribute(
+      //   "position",
+      //   new THREE.BufferAttribute(g.vertices, 3).setDynamic(true)
+      // );
       //g.addAttribute( 'normal', new THREE.BufferAttribute( g.normals, 3 ).setDynamic( true ) );
       //g.addAttribute( 'uv', new THREE.BufferAttribute( g.uvs, 2 ) );
 
@@ -175,13 +182,15 @@
           b2 = wss * (j + 1) + 1 + i; // left-top
           c2 = wss * j + 1 + i;
 
+          // console.log(g.faceIndices[idxCount]);
+
           g.faceIndices[idxCount] = a; // right-bottom
           g.faceIndices[idxCount + 1] = b1;
           g.faceIndices[idxCount + 2] = c1;
 
           g.faceIndices[idxCount + 3] = a; // left-top
-          (g.faceIndices[idxCount + 4] = b2),
-            (g.faceIndices[idxCount + 5] = c2);
+          g.faceIndices[idxCount + 4] = b2;
+          g.faceIndices[idxCount + 5] = c2;
 
           idxCount += 6;
         }
