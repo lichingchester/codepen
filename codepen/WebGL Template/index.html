@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        font-family: "Oswald", sans-serif;
+      }
+
+      .webgl {
+        position: fixed;
+        left: 0;
+        top: 0;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="webgl"></canvas>
+
+    <script src="CCapture.all.min.js"></script>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+    ></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"
+      integrity="sha512-VEBjfxWUOyzl0bAwh4gdLEaQyDYPvLrZql3pw1ifgb6fhEvZl9iDDehwHZ+dsMzA0Jfww8Xt7COSZuJ/slxc4Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@<version>/build/three.module.js"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
+      import { OrbitControls } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
+      import { Curves } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/curves/CurveExtras.js";
+      import ParametricGeometry from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/geometries/ParametricGeometry.js";
+      // import { HelixCurve } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/curves/CurveExtras.js";
+
+      // Canvas
+      const canvas = document.querySelector("canvas.webgl");
+
+      // Scene
+      const scene = new THREE.Scene();
+
+      // Object
+      const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const blueMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+      const lineMaterial = new THREE.LineBasicMaterial({
+        color: 0x0000ff,
+        linewidth: 1,
+      });
+      const lineBasicMaterial = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        linewidth: 10,
+        // linecap: "round", //ignored by WebGLRenderer
+        // linejoin: "round", //ignored by WebGLRenderer
+        // wireframe: true,
+      });
+
+      // ***************
+      const splines = {
+        HelixCurve: new Curves.HelixCurve(),
+      };
+
+      const extrudePath = splines["HelixCurve"];
+
+      // extrudePath.arcLengthDivisions = 100;
+
+      const tubeGeometry = new THREE.TubeGeometry(
+        extrudePath,
+        100,
+        10,
+        2,
+        false
+      );
+      material.wireframe = true;
+      const tubeMesh = new THREE.Mesh(tubeGeometry, material);
+      // tubeMesh.scale.set(0.02, 0.02, 0.02);
+      tubeMesh.rotation.x = Math.PI / 2;
+      scene.add(tubeMesh);
+
+      // ***************
+      // line
+      // const points = [];
+      // points.push(new THREE.Vector3(-10, 0, 0));
+      // points.push(new THREE.Vector3(0, 10, 0));
+      // points.push(new THREE.Vector3(10, 0, 0));
+      // points.push(new THREE.Vector3(-10, 0, 0));
+
+      const points = extrudePath.getPoints(extrudePath.arcLengthDivisions);
+
+      for (let i = 0; i < points.length; i++) {
+        console.log(points[i]);
+        points[i].x += 10;
+      }
+
+      // points.push(...points);
+
+      // console.log(
+      //   extrudePath,
+      //   extrudePath.getPoints(extrudePath.arcLengthDivisions)
+      // );
+
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      blueMaterial.wireframe = true;
+      // const line = new THREE.Line(lineGeometry, blueMaterial);
+      const lineMesh = new THREE.Mesh(lineGeometry, blueMaterial);
+      lineMesh.rotation.x = Math.PI / 2;
+      // scene.add(line);
+      scene.add(lineMesh);
+
+      // ***************
+      var a = 0;
+      var b1 = 0;
+      var c1 = 0;
+      var b2 = 0;
+      var c2 = 0;
+
+      var ls = 200; // length segments
+      var ws = 20; // width segments, tracks
+
+      var lss = ls + 1;
+      var wss = ws + 1;
+
+      var faceCount = ls * ws * 2;
+      var vertexCount = lss * wss;
+
+      var g = new THREE.BufferGeometry();
+
+      g.faceIndices = new Uint32Array(faceCount * 3);
+      g.vertices = new Float32Array(vertexCount * 3);
+      //g.normals = new Float32Array( vertexCount * 3 );
+      //g.uvs = new Float32Array( vertexCount * 2 );
+
+      g.setIndex(new THREE.BufferAttribute(g.faceIndices, 1));
+      g.addAttribute(
+        "position",
+        new THREE.BufferAttribute(g.vertices, 3).setDynamic(true)
+      );
+      //g.addAttribute( 'normal', new THREE.BufferAttribute( g.normals, 3 ).setDynamic( true ) );
+      //g.addAttribute( 'uv', new THREE.BufferAttribute( g.uvs, 2 ) );
+
+      var idxCount = 0;
+
+      for (var j = 0; j < ls; j++) {
+        for (var i = 0; i < ws; i++) {
+          // 2 faces / segment,  3 vertex indices
+          a = wss * j + i;
+          b1 = wss * (j + 1) + i; // right-bottom
+          c1 = wss * (j + 1) + 1 + i;
+          b2 = wss * (j + 1) + 1 + i; // left-top
+          c2 = wss * j + 1 + i;
+
+          g.faceIndices[idxCount] = a; // right-bottom
+          g.faceIndices[idxCount + 1] = b1;
+          g.faceIndices[idxCount + 2] = c1;
+
+          g.faceIndices[idxCount + 3] = a; // left-top
+          (g.faceIndices[idxCount + 4] = b2),
+            (g.faceIndices[idxCount + 5] = c2);
+
+          idxCount += 6;
+        }
+      }
+
+      // write groups for multi material
+      /*
+      //Customize for different colored tracks.
+      for ( var f = 0, p = 0; f < faceCount; f ++, p += 3 ) {
+        
+        g.addGroup( p, 3, 1 );
+        
+      }
+      
+      */
+
+      var x, y, z;
+      var vIdx = 0; // vertex index
+      var posIdx; // position  index
+
+      // set vertex position
+      function xyzSet() {
+        posIdx = vIdx * 3;
+
+        g.vertices[posIdx] = x;
+        g.vertices[posIdx + 1] = y;
+        g.vertices[posIdx + 2] = z;
+      }
+
+      for (var j = 0; j < lss; j++) {
+        // length
+
+        for (var i = 0; i < wss; i++) {
+          // width
+
+          // calculate here the coordinates according to your wishes
+          // x = j / 10;
+          // y = Math.sin((Math.PI * j) / 100);
+          // z = i - 1;
+
+          // calculate here the coordinates according to your wishes
+          var tangent = extrudePath.getTangent(j / ls); //  100 length segments
+          x = points[j].x + tangent.x;
+          y = points[j].y + 1;
+          z = points[j].z + tangent.z + i / 2;
+
+          xyzSet();
+
+          vIdx++;
+        }
+      }
+
+      g.attributes.position.needsUpdate = true;
+      //g.attributes.normal.needsUpdate = true;
+
+      var cusmaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        side: THREE.DoubleSide,
+        wireframe: true,
+      });
+      var cusmesh = new THREE.Mesh(g, cusmaterial);
+      cusmesh.rotation.x = Math.PI / 2;
+      scene.add(cusmesh);
+
+      // ***************
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const mesh = new THREE.Mesh(geometry, material);
+      // scene.add(mesh);
+
+      // Sizes
+      const sizes = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        sizes.width / sizes.height
+      );
+      camera.position.z = 200;
+      scene.add(camera);
+
+      // Controls
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+      });
+      renderer.setSize(sizes.width, sizes.height);
+      renderer.render(scene, camera);
+
+      // Events
+      window.addEventListener("resize", () => {
+        sizes.width = window.innerWidth;
+        sizes.height = window.innerHeight;
+
+        camera.aspect = sizes.width / sizes.height;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(sizes.width, sizes.height);
+      });
+
+      /**
+       * Animate
+       */
+      const clock = new THREE.Clock();
+
+      const tick = () => {
+        const elapsedTime = clock.getElapsedTime();
+
+        // Update controls
+        controls.update();
+
+        // Render
+        renderer.render(scene, camera);
+
+        // Call tick again on the next frame
+        window.requestAnimationFrame(tick);
+      };
+
+      tick();
+    </script>
+  </body>
+</html>
