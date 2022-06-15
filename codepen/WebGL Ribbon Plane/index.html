@@ -22,14 +22,62 @@
 
       .webgl {
         position: fixed;
-        left: 0;
-        top: 0;
         outline: none;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
       }
     </style>
   </head>
   <body>
-    <canvas class="webgl"></canvas>
+    <canvas class="webgl border-2 border-red-500"></canvas>
+
+    <div class="relative pt-[70vh]">
+      <div class="max-w-[900px] mx-auto px-8">
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-5">
+          <div class="w-96 h-80 bg-red-500"></div>
+        </div>
+      </div>
+    </div>
 
     <script src="CCapture.all.min.js"></script>
 
@@ -60,6 +108,12 @@
       import ParametricGeometry from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/geometries/ParametricGeometry.js";
       // import { HelixCurve } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/curves/CurveExtras.js";
 
+      // params
+      const params = {
+        // 0 start, 1 end
+        offset: 0,
+      };
+
       // Canvas
       const canvas = document.querySelector("canvas.webgl");
 
@@ -67,7 +121,8 @@
       const scene = new THREE.Scene();
 
       // Object
-      const geometry = new THREE.PlaneGeometry(5, 3, 50, 25);
+      const geometry = new THREE.PlaneGeometry(5, 2, 50, 25);
+
       const uniforms = {
         uAmplitude: {
           value: 1.0,
@@ -75,11 +130,34 @@
         uTime: {
           value: 0,
         },
+        uSpeed: {
+          value: 0.2,
+        },
+        uDensity: {
+          value: 0.2,
+        },
+        uMeasure: {
+          value: 0.3,
+        },
         uColor: {
           value: new THREE.Color(0xff0000),
         },
+        uColor1: {
+          // value: new THREE.Color(0xff0000),
+          value: new THREE.Color(0xd15d25),
+        },
+        uColor2: {
+          // value: new THREE.Color(0x00ff00),
+          value: new THREE.Color(0xed966c),
+        },
+        uAngle: {
+          value: 45 * 3,
+        },
         uScreenWidth: {
           value: window.innerWidth,
+        },
+        uOffset: {
+          value: params.offset,
         },
       };
 
@@ -89,14 +167,19 @@
       });
       const shaderMaterial = new THREE.ShaderMaterial({
         uniforms,
-        wireframe: true,
+        transparent: true,
+        // wireframe: true,
         vertexShader: `
             uniform float uTime;
+            uniform float uSpeed;
+            uniform float uDensity;
+            uniform float uMeasure;
             uniform float uScreenWidth;
 
             varying vec2 vUv;
             varying vec3 vNormal;
             varying float vNoise;
+            varying float vDisplacement;
 
             // Simplex 2D noise
             vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
@@ -137,36 +220,68 @@
               vec4 modalPosition = modelMatrix * vec4( position, 1.0 );
 
               modalPosition.y += (modalPosition.x * 0.5);
-              displacement = snoise(modalPosition.xy * .5) * .3;
+              displacement = snoise(modalPosition.xy * uDensity- uTime * uSpeed) * uMeasure;
 
               modalPosition.z += displacement;
+
+              vDisplacement = displacement;
 
               gl_Position = projectionMatrix * viewMatrix * modalPosition;
             }
               `,
         fragmentShader: `
+            uniform float uOffset;
             uniform float uTime;
             uniform vec3 uColor;
+            uniform vec3 uColor1;
+            uniform vec3 uColor2;
+            uniform float uAngle;
             uniform sampler2D uTexture;
 
             varying float vNoise;
             varying vec3 vNormal;
             varying vec2 vUv;
+            varying float vDisplacement;
+
+            float PI = 3.14159;
 
             float random( vec3 scale, float seed ){
               return fract( sin( dot( gl_FragCoord.xyz + seed, scale ) ) * 43758.5453 + seed ) ;
             }
 
+            // v = vUv, a = required angle
+            float rotate(vec2 v, float a){              
+              vec2 uv = v;
+
+              vec2 origin = vec2(0.5, 0.5);
+              uv -= origin;
+              
+              float angle = radians(90.0) - radians(a) + atan(uv.y, uv.x);
+
+              float len = length(uv);
+              uv = vec2(cos(angle) * len, sin(angle) * len) + origin;
+
+              return smoothstep(0.0, 1.0, uv.x);
+            }
+
             void main() {
               // texture
-              vec4 color = texture2D(uTexture, vUv);
+              // vec4 color = texture2D(uTexture, vUv);
 
 
               // float r = 0.001 * random( vec3( 12.9898, 78.233, 151.7182 ), 0.0 );
               // vec2 tPos = vec2( 0, 1.3 * vNoise + r );
               // vec4 color = vec4(vUv.x,0.5,1.-vUv.x,.0);
 
-              gl_FragColor = vec4( uColor.rgb, 1.0 );
+              vec4 startColor = vec4(uColor1, 1.0);
+              vec4 endColor = vec4(uColor2, 1.0);
+
+              vec3 color = mix(uColor1, uColor2, rotate(vUv, uAngle));
+              color -= (-1. * vDisplacement) * 0.15;  
+
+              float a = step(0., vUv.x);
+
+              gl_FragColor = vec4(color, a);
             }
               `,
       });
@@ -176,7 +291,8 @@
       // Sizes
       const sizes = {
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: 2000,
+        // height: window.innerHeight,
       };
 
       // Camera
@@ -188,25 +304,32 @@
       scene.add(camera);
 
       // Controls
-      const controls = new OrbitControls(camera, canvas);
-      controls.enableDamping = true;
+      // const controls = new OrbitControls(camera, canvas);
+      // controls.enableDamping = true;
 
       // Renderer
       const renderer = new THREE.WebGLRenderer({
         canvas: canvas,
+        alpha: true,
       });
+      renderer.setClearColor(0x000000, 0);
       renderer.setSize(sizes.width, sizes.height);
       renderer.render(scene, camera);
+
+      const widthDelta = 800;
+      mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1;
 
       // Events
       window.addEventListener("resize", () => {
         sizes.width = window.innerWidth;
-        sizes.height = window.innerHeight;
+        // sizes.height = window.innerHeight;
 
         camera.aspect = sizes.width / sizes.height;
         camera.updateProjectionMatrix();
 
         renderer.setSize(sizes.width, sizes.height);
+
+        mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1;
       });
 
       /**
@@ -217,8 +340,12 @@
       const tick = () => {
         const elapsedTime = clock.getElapsedTime();
 
+        // update material
+        shaderMaterial.uniforms.uOffset.value = params.offset;
+        shaderMaterial.uniforms.uTime.value = elapsedTime;
+
         // Update controls
-        controls.update();
+        // controls.update();
 
         // Render
         renderer.render(scene, camera);
@@ -228,6 +355,15 @@
       };
 
       tick();
+
+      // console.log(gsap);
+      // gsap.to(params, {
+      //   offset: 1,
+      //   duration: 2,
+      //   onUpdate: () => {
+      //     console.log(params);
+      //   },
+      // });
     </script>
   </body>
 </html>
