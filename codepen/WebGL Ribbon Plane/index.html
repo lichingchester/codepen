@@ -115,7 +115,7 @@
 
     <script type="module">
       import * as THREE from "https://cdn.skypack.dev/three@0.141.0/build/three.module";
-      // import { OrbitControls } from "https://cdn.skypack.dev/three@0.141.0/examples/jsm/controls/OrbitControls";
+      import { OrbitControls } from "https://cdn.skypack.dev/three@0.141.0/examples/jsm/controls/OrbitControls";
       import { GUI } from "https://cdn.skypack.dev/three@0.141.0/examples/jsm/libs/lil-gui.module.min.js";
       import smoothscrollForWebsites from "https://cdn.skypack.dev/smoothscroll-for-websites";
 
@@ -129,6 +129,8 @@
         density: 0.1,
         measure: 0.164,
       };
+
+      const cardCount = 10;
 
       const gui = new GUI(params);
       gui.add(params, "offset", 0, 1).listen();
@@ -187,11 +189,16 @@
         color: 0xff00000,
         wireframe: true,
       });
-      const shaderMaterial = new THREE.ShaderMaterial({
-        uniforms,
-        transparent: true,
-        // wireframe: true,
-        vertexShader: `
+
+      const shaderMaterials = [];
+      const meshes = [];
+
+      for (let i = 0; i < cardCount; i++) {
+        const shaderMaterial = new THREE.ShaderMaterial({
+          uniforms,
+          transparent: true,
+          // wireframe: true,
+          vertexShader: `
             uniform float uTime;
             uniform float uSpeed;
             uniform float uDensity;
@@ -241,8 +248,10 @@
 
               vec4 modalPosition = modelMatrix * vec4( position, 1.0 );
 
-              modalPosition.y += (modalPosition.x * 0.3);
-              displacement = snoise(modalPosition.xy * uDensity- uTime * uSpeed) * uMeasure;
+              modalPosition.y ${
+                i % 2 === 0 ? "+=" : "-="
+              } (modalPosition.x * 0.3);
+              displacement = snoise(modalPosition.xy * uDensity - uTime * uSpeed) * uMeasure;
 
               modalPosition.z += displacement;
 
@@ -251,7 +260,7 @@
               gl_Position = projectionMatrix * viewMatrix * modalPosition;
             }
               `,
-        fragmentShader: `
+          fragmentShader: `
             uniform float uOffset;
             uniform float uTime;
             uniform vec3 uColor;
@@ -306,9 +315,21 @@
               gl_FragColor = vec4(color, a);
             }
               `,
-      });
-      const mesh = new THREE.Mesh(geometry, shaderMaterial);
-      scene.add(mesh);
+        });
+        const mesh = new THREE.Mesh(geometry, shaderMaterial);
+        shaderMaterials.push(shaderMaterial);
+
+        // mesh.position.y = -1 * (i * 2);
+        mesh.position.z = i * 0.1;
+
+        scene.add(mesh);
+        meshes.push(mesh);
+      }
+
+      // const mesh2 = new THREE.Mesh(geometry, shaderMaterial);
+      // mesh2.position.y -= 2;
+      // mesh2.position.z += 0.1;
+      // scene.add(mesh2);
 
       // Sizes
       const sizes = {
@@ -326,8 +347,8 @@
       scene.add(camera);
 
       // Controls
-      // const controls = new OrbitControls(camera, canvas);
-      // controls.enableDamping = true;
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
 
       // Renderer
       const renderer = new THREE.WebGLRenderer({
@@ -338,19 +359,7 @@
       renderer.setSize(sizes.width, sizes.height);
       renderer.render(scene, camera);
 
-      // let wh1 = 2000;
-      // let wh2 = sizes.height;
-      // let bh1 = wh1;
-      // // let bh2 = (wh2 * bh1) / wh1;
-      // let bh2 = wh2;
-      // // let sy = bh1 / bh2;
-      let sy = 2000 / sizes.height;
-      mesh.scale.y = sy;
-
-      const widthDelta = 800;
-      mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1 + sy;
-
-      console.log(mesh.scale.x);
+      meshes.forEach((mesh) => scaleMesh(mesh));
 
       // Events
       window.addEventListener("resize", () => {
@@ -362,19 +371,14 @@
 
         renderer.setSize(sizes.width, sizes.height);
 
-        // // wh1 = heightDeltaW;
-        // wh2 = sizes.height;
-        // // bh1 = heightDeltaB;
-        // bh2 = (wh2 * bh1) / wh1;
-        // sy = bh1 / bh2;
-        sy = 2000 / sizes.height;
-        mesh.scale.y = sy;
-
-        // mesh.scale.x = 1 - 1000 / sizes.width + 1;
-        mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1 + sy;
-
-        console.log(mesh.scale.x);
+        meshes.forEach((mesh) => scaleMesh(mesh));
       });
+
+      function scaleMesh(mesh) {
+        const sy = 2000 / sizes.height;
+        mesh.scale.y = sy;
+        mesh.scale.x = (sizes.width - 800) * 0.00075 + 1 + sy;
+      }
 
       /**
        * Animate
@@ -385,14 +389,16 @@
         const elapsedTime = clock.getElapsedTime();
 
         // update material
-        shaderMaterial.uniforms.uOffset.value = params.offset;
-        shaderMaterial.uniforms.uSpeed.value = params.speed;
-        shaderMaterial.uniforms.uDensity.value = params.density;
-        shaderMaterial.uniforms.uMeasure.value = params.measure;
-        shaderMaterial.uniforms.uTime.value = elapsedTime;
+        shaderMaterials.forEach((shaderMaterial) => {
+          shaderMaterial.uniforms.uOffset.value = params.offset;
+          shaderMaterial.uniforms.uSpeed.value = params.speed;
+          shaderMaterial.uniforms.uDensity.value = params.density;
+          shaderMaterial.uniforms.uMeasure.value = params.measure;
+          shaderMaterial.uniforms.uTime.value = elapsedTime;
+        });
 
         // Update controls
-        // controls.update();
+        controls.update();
 
         // Render
         renderer.render(scene, camera);
