@@ -32,49 +32,61 @@
   <body>
     <canvas class="webgl border-2 border-red-500"></canvas>
 
-    <div class="relative pt-[70vh]">
-      <div class="max-w-[900px] mx-auto px-8">
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+    <div class="relative pt-[100vh]">
+      <div class="max-w-[1300px] mx-auto px-8">
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-end py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
-        <div class="flex justify-start py-5">
-          <div class="w-96 h-80 bg-red-500"></div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
+        </div>
+        <div class="flex justify-end py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
+        </div>
+        <div class="flex justify-start py-28">
+          <div class="w-[620px] h-[558px] bg-red-500"></div>
         </div>
       </div>
     </div>
@@ -96,23 +108,33 @@
     <script type="importmap">
       {
         "imports": {
-          "three": "https://unpkg.com/three@<version>/build/three.module.js"
+          "three": "https://unpkg.com/three@0.141.0/build/three.module.js"
         }
       }
     </script>
 
     <script type="module">
-      import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
-      import { OrbitControls } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
-      import { Curves } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/curves/CurveExtras.js";
-      import ParametricGeometry from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/geometries/ParametricGeometry.js";
-      // import { HelixCurve } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/curves/CurveExtras.js";
+      import * as THREE from "https://cdn.skypack.dev/three@0.141.0/build/three.module";
+      // import { OrbitControls } from "https://cdn.skypack.dev/three@0.141.0/examples/jsm/controls/OrbitControls";
+      import { GUI } from "https://cdn.skypack.dev/three@0.141.0/examples/jsm/libs/lil-gui.module.min.js";
+      import smoothscrollForWebsites from "https://cdn.skypack.dev/smoothscroll-for-websites";
+
+      smoothscrollForWebsites();
 
       // params
       const params = {
         // 0 start, 1 end
         offset: 0,
+        speed: 0.226,
+        density: 0.1,
+        measure: 0.164,
       };
+
+      const gui = new GUI(params);
+      gui.add(params, "offset", 0, 1).listen();
+      gui.add(params, "speed", 0, 1).listen();
+      gui.add(params, "density", 0, 1).listen();
+      gui.add(params, "measure", 0, 1).listen();
 
       // Canvas
       const canvas = document.querySelector("canvas.webgl");
@@ -121,7 +143,7 @@
       const scene = new THREE.Scene();
 
       // Object
-      const geometry = new THREE.PlaneGeometry(5, 2, 50, 25);
+      const geometry = new THREE.PlaneGeometry(5, 2.5, 50, 25);
 
       const uniforms = {
         uAmplitude: {
@@ -131,13 +153,13 @@
           value: 0,
         },
         uSpeed: {
-          value: 0.2,
+          value: params.speed,
         },
         uDensity: {
-          value: 0.2,
+          value: params.density,
         },
         uMeasure: {
-          value: 0.3,
+          value: params.measure,
         },
         uColor: {
           value: new THREE.Color(0xff0000),
@@ -219,7 +241,7 @@
 
               vec4 modalPosition = modelMatrix * vec4( position, 1.0 );
 
-              modalPosition.y += (modalPosition.x * 0.5);
+              modalPosition.y += (modalPosition.x * 0.3);
               displacement = snoise(modalPosition.xy * uDensity- uTime * uSpeed) * uMeasure;
 
               modalPosition.z += displacement;
@@ -250,12 +272,12 @@
             }
 
             // v = vUv, a = required angle
-            float rotate(vec2 v, float a){              
+            float rotate(vec2 v, float a){
               vec2 uv = v;
 
               vec2 origin = vec2(0.5, 0.5);
               uv -= origin;
-              
+
               float angle = radians(90.0) - radians(a) + atan(uv.y, uv.x);
 
               float len = length(uv);
@@ -277,9 +299,9 @@
               vec4 endColor = vec4(uColor2, 1.0);
 
               vec3 color = mix(uColor1, uColor2, rotate(vUv, uAngle));
-              color -= (-1. * vDisplacement) * 0.15;  
+              color -= (-1. * vDisplacement) * 0.15;
 
-              float a = step(0., vUv.x);
+              float a = step(uOffset, vUv.x);
 
               gl_FragColor = vec4(color, a);
             }
@@ -291,8 +313,8 @@
       // Sizes
       const sizes = {
         width: window.innerWidth,
-        height: 2000,
-        // height: window.innerHeight,
+        // height: 2000,
+        height: window.innerHeight,
       };
 
       // Camera
@@ -316,20 +338,42 @@
       renderer.setSize(sizes.width, sizes.height);
       renderer.render(scene, camera);
 
+      // let wh1 = 2000;
+      // let wh2 = sizes.height;
+      // let bh1 = wh1;
+      // // let bh2 = (wh2 * bh1) / wh1;
+      // let bh2 = wh2;
+      // // let sy = bh1 / bh2;
+      let sy = 2000 / sizes.height;
+      mesh.scale.y = sy;
+
       const widthDelta = 800;
-      mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1;
+      mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1 + sy;
+
+      console.log(mesh.scale.x);
 
       // Events
       window.addEventListener("resize", () => {
         sizes.width = window.innerWidth;
-        // sizes.height = window.innerHeight;
+        sizes.height = window.innerHeight;
 
         camera.aspect = sizes.width / sizes.height;
         camera.updateProjectionMatrix();
 
         renderer.setSize(sizes.width, sizes.height);
 
-        mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1;
+        // // wh1 = heightDeltaW;
+        // wh2 = sizes.height;
+        // // bh1 = heightDeltaB;
+        // bh2 = (wh2 * bh1) / wh1;
+        // sy = bh1 / bh2;
+        sy = 2000 / sizes.height;
+        mesh.scale.y = sy;
+
+        // mesh.scale.x = 1 - 1000 / sizes.width + 1;
+        mesh.scale.x = (sizes.width - widthDelta) * 0.00075 + 1 + sy;
+
+        console.log(mesh.scale.x);
       });
 
       /**
@@ -342,6 +386,9 @@
 
         // update material
         shaderMaterial.uniforms.uOffset.value = params.offset;
+        shaderMaterial.uniforms.uSpeed.value = params.speed;
+        shaderMaterial.uniforms.uDensity.value = params.density;
+        shaderMaterial.uniforms.uMeasure.value = params.measure;
         shaderMaterial.uniforms.uTime.value = elapsedTime;
 
         // Update controls
@@ -364,6 +411,10 @@
       //     console.log(params);
       //   },
       // });
+
+      /**
+       * handle scroll effect
+       */
     </script>
   </body>
 </html>
