@@ -7,6 +7,7 @@
     "preview": "vite preview --port 4173"
   },
   "dependencies": {
+    "ccapture.js": "^1.1.0",
     "glsl-aastep": "^1.0.1",
     "glsl-noise": "0.0.0",
     "glslify": "^7.1.1",

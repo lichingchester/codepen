@@ -6,9 +6,18 @@ import { Text } from "troika-three-text";
 import font from "@/assets/font.otf";
 import vertexShader from "@/vertex.glsl";
 import fragmentShader from "@/fragment.glsl";
+// import { CCapture } from "ccapture.js";
 
 onMounted(() => {
-  console.log("start");
+  let Script = document.createElement("script");
+  Script.setAttribute("src", "/CCapture.all.min.js");
+  document.head.appendChild(Script);
+
+  console.log("start", CCapture);
+
+  const capturer = new CCapture({ format: "webm" });
+  capturer.start();
+
   // Canvas
   const canvas = document.querySelector("canvas.webgl");
 
@@ -50,8 +59,8 @@ onMounted(() => {
   text.text = "Aequam memento rebus in arduis servare mentem";
   text.fontSize = 20;
   text.outlineWidth = 0.01;
-  // text.textAlign = "center";
-  // text.anchorX = "100%";
+  text.textAlign = "center";
+  text.anchorX = "center";
   // text.position.y = 5;
   // text.position.x = -5;
   // text.position.z = 100;
@@ -61,10 +70,10 @@ onMounted(() => {
   // text.curveRadius = -32;
   text.material = textMaterial;
 
-  text.geometry.computeBoundingBox();
-  const xMid =
-    -0.5 * (text.geometry.boundingBox.max.x - text.geometry.boundingBox.min.x);
-  text.geometry.translate(xMid, 0, 0);
+  // text.geometry.computeBoundingBox();
+  // const xMid =
+  //   -0.5 * (text.geometry.boundingBox.max.x - text.geometry.boundingBox.min.x);
+  // text.geometry.translate(xMid, 0, 0);
 
   // Update the rendering:
   text.sync();
@@ -137,11 +146,18 @@ onMounted(() => {
     // Render
     renderer.render(scene, camera);
 
+    capturer.capture(canvas);
+
     // Call tick again on the next frame
     window.requestAnimationFrame(tick);
   };
 
   tick();
+
+  setTimeout(() => {
+    capturer.stop();
+    capturer.save();
+  }, 20000);
 });
 </script>
 
