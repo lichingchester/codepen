@@ -3,45 +3,9 @@ import { onMounted } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Text } from "troika-three-text";
-// import glsl from "glslify";
 import font from "@/assets/font.otf";
 import vertexShader from "@/vertex.glsl";
 import fragmentShader from "@/fragment.glsl";
-
-// const vertexShader = `
-//   uniform float uTime;
-
-//   varying vec2 vUv;
-
-//   void main(){
-//     vUv = uv;
-
-//     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-//     // gl_PointSize = scale * (300.0 / - mvPosition.z);
-//     // gl_PointSize = 2.0;
-//     gl_Position = projectionMatrix * mvPosition;
-
-//     // gl_Position.x += sin(position.x * 10.0 + uTime) * 0.1;
-//   }
-// `;
-// const fragmentShader = `
-//   #pragma glslify: noise = require(glsl-noise/simplex/3d);
-
-//   uniform vec3 uColor;
-//   uniform float uTime;
-
-//   varying vec2 vUv;
-
-//   void main(){
-//     float alpha = 1.0;
-
-//     vec3 color = uColor;
-
-//     float noise = noise(vec3(vUv * 0.1, uTime * 0.1));
-
-//     gl_FragColor = vec4(color, alpha);
-//   }
-// `;
 
 onMounted(() => {
   console.log("start");
@@ -60,7 +24,7 @@ onMounted(() => {
     side: THREE.DoubleSide,
   });
   const object = new THREE.Mesh(geometry, material);
-  scene.add(object);
+  // scene.add(object);
 
   // Text
   // const textMaterial = new THREE.MeshBasicMaterial({
@@ -71,9 +35,11 @@ onMounted(() => {
     uniforms: {
       uColor: { value: new THREE.Color(0xffffff) },
       uTime: { value: 1.0 },
+      uAnimate: { type: "f", value: 1 },
     },
     vertexShader,
     fragmentShader,
+    side: THREE.DoubleSide,
   });
 
   const text = new Text();
@@ -83,13 +49,27 @@ onMounted(() => {
   text.font = font;
   text.text = "Aequam memento rebus in arduis servare mentem";
   text.fontSize = 20;
-  text.textAlign = "center";
-  text.anchorX = "center";
-  text.position.z = 1;
+  text.outlineWidth = 0.01;
+  // text.textAlign = "center";
+  // text.anchorX = "100%";
+  // text.position.y = 5;
+  // text.position.x = -5;
+  // text.position.z = 100;
+  // text.rotation.x = Math.PI * 0.1;
+  // text.rotation.z = Math.PI * 0.1;
+  // text.quaternion.setFromEuler(new THREE.Euler(1, 0, 0, "XYZ"));
+  // text.curveRadius = -32;
   text.material = textMaterial;
+
+  text.geometry.computeBoundingBox();
+  const xMid =
+    -0.5 * (text.geometry.boundingBox.max.x - text.geometry.boundingBox.min.x);
+  text.geometry.translate(xMid, 0, 0);
 
   // Update the rendering:
   text.sync();
+
+  console.log(text);
 
   // Sizes
   const sizes = {
@@ -131,10 +111,25 @@ onMounted(() => {
    * Animate
    */
   const clock = new THREE.Clock();
+  const duration = 3;
+  let time = 0;
 
   const tick = () => {
     const elapsedTime = clock.getElapsedTime();
     // const elapsedTime = Date.now() * 0.01;
+    // time += elapsedTime / 1000;
+    // time += 0.01;
+
+    // if (time > duration) {
+    //   time = 0;
+    // }
+
+    // text.rotation.y += 0.01;
+    textMaterial.uniforms.uTime.value = elapsedTime;
+    // textMaterial.uniforms.uTime.value = time;
+    // textMaterial.uniforms.uAnimate.value = time / duration;
+
+    // console.log("time", time);
 
     // Update controls
     controls.update();
