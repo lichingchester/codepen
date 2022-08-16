@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+
+      .webgl {
+        position: fixed;
+        left: 0;
+        top: 0;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="webgl"></canvas>
+
+    <script src="CCapture.all.min.js"></script>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+    ></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@<version>/build/three.module.js"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
+      import { OrbitControls } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
+
+      // var capturer = new CCapture({ format: "webm" });
+
+      // Canvas
+      const canvas = document.querySelector("canvas.webgl");
+
+      // Scene
+      const scene = new THREE.Scene();
+
+      // Geometry
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+      // Material
+      const uniforms = {
+        uTime: {
+          value: 0,
+        },
+        uColor: {
+          value: new THREE.Color(0xff2200),
+        },
+      };
+
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: `        
+          varying vec2 vUv;
+
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          }
+        `,
+        fragmentShader: `
+          uniform float uTime;
+          uniform vec3 uColor;
+          varying vec2 vUv;
+
+          void main() {
+            float strength = 1.0 - vUv.x;
+            strength *= .0;
+            vec3 color = vec3(strength, strength, strength);
+
+            gl_FragColor = vec4( color, 1.0 );
+          }
+        `,
+      });
+
+      // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+      // Object
+      // const cube = new THREE.Mesh(geometry, material);
+      const cube = new THREE.Mesh(geometry, shaderMaterial);
+      scene.add(cube);
+
+      // lines
+      // const points = [];
+      // points.push(new THREE.Vector3(-1, 0, 0));
+      // points.push(new THREE.Vector3(0, 1, 0));
+      // points.push(new THREE.Vector3(1, 0, 0));
+
+      // const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      // const lineMaterial = new THREE.LineBasicMaterial({
+      //   color: 0xff0000,
+      //   // linewidth: 10,
+      //   // linecap: "round",
+      // });
+
+      // const line = new THREE.Line(geometry, lineMaterial);
+      // scene.add(line);
+
+      // Sizes
+      const sizes = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(
+        30,
+        sizes.width / sizes.height
+      );
+      camera.position.z = 7;
+      scene.add(camera);
+
+      // Controls
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+      });
+      renderer.toneMapping = THREE.ReinhardToneMapping;
+      renderer.setSize(sizes.width, sizes.height);
+      renderer.render(scene, camera);
+
+      // Events
+      window.addEventListener("resize", () => {
+        sizes.width = window.innerWidth;
+        sizes.height = window.innerHeight;
+
+        camera.aspect = sizes.width / sizes.height;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(sizes.width, sizes.height);
+        // composer.setSize(sizes.width, sizes.height);
+      });
+
+      /**
+       * Animate
+       */
+      const clock = new THREE.Clock();
+
+      let canRecord = false;
+
+      const tick = () => {
+        const elapsedTime = clock.getElapsedTime();
+        // const elapsedTime = Date.now() * 0.01;
+
+        // positioning
+        // cube.rotation.z = elapsedTime * 0.2;
+        // cube.rotation.x = elapsedTime * 0.1;
+        cube.rotation.x = Math.PI * 0.1;
+        cube.rotation.y = elapsedTime * 0.4;
+
+        // animate
+        shaderMaterial.uniforms.uTime.value = elapsedTime;
+
+        // Update controls
+        controls.update();
+
+        // Render
+        renderer.render(scene, camera);
+        // composer.render();
+
+        // Record
+        // if (canRecord) {
+        //   capturer.capture(canvas);
+        // }
+
+        // Call tick again on the next frame
+        window.requestAnimationFrame(tick);
+      };
+
+      tick();
+
+      // window.addEventListener("keydown", ({ code }) => {
+      //   console.log(code);
+
+      //   if (code === "Space") {
+      //     capturer.start();
+      //     canRecord = true;
+
+      //     setTimeout(() => {
+      //       capturer.stop();
+      //       capturer.save();
+
+      //       canRecord = false;
+      //     }, 20000);
+      //   }
+      // });
+    </script>
+  </body>
+</html>
