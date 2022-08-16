@@ -50,10 +50,41 @@
       // Scene
       const scene = new THREE.Scene();
 
-      // Object
+      // Geometry
       const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
+
+      // Material
+      const uniforms = {
+        uTime: {
+          value: 0,
+        },
+        uColor: {
+          value: new THREE.Color(0xff2200),
+        },
+      };
+
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: `
+          void main() {
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          }
+        `,
+        fragmentShader: `
+          // uniform float uTime;
+          uniform vec3 uColor;
+
+          void main() {
+            gl_FragColor = vec4( uColor.rgb, 1.0 );
+          }
+        `,
+      });
+
+      // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+      // Object
+      // const cube = new THREE.Mesh(geometry, material);
+      const cube = new THREE.Mesh(geometry, shaderMaterial);
       scene.add(cube);
 
       // Sizes
