@@ -42,7 +42,7 @@
       import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
       import { OrbitControls } from "https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls";
 
-      // var capturer = new CCapture({ format: "webm" });
+      var capturer = new CCapture({ format: "webm" });
 
       // Canvas
       const canvas = document.querySelector("canvas.webgl");
@@ -65,7 +65,7 @@
 
       const shaderMaterial = new THREE.ShaderMaterial({
         uniforms,
-        vertexShader: `        
+        vertexShader: `
           varying vec2 vUv;
 
           void main() {
@@ -79,9 +79,11 @@
           varying vec2 vUv;
 
           void main() {
-            float barX = step(0.4, mod(vUv.x * 10.0, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
-            float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0, 1.0));
-            float strength = barX + barY;
+            // float barX = step(0.4, mod(vUv.x * 10.0, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+            // float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0, 1.0));
+            // float strength = barX + barY;
+
+            float strength = step(0.495, max(abs(vUv.x - 0.5), abs(vUv.y - 0.5)));
 
             vec3 color = vec3(strength, strength, strength);
 
@@ -164,10 +166,23 @@
         // const elapsedTime = Date.now() * 0.01;
 
         // positioning
+        cube.position.z = 1;
+
         // cube.rotation.z = elapsedTime * 0.2;
         // cube.rotation.x = elapsedTime * 0.1;
         cube.rotation.x = Math.PI * 0.1;
-        cube.rotation.y = elapsedTime * 0.4;
+
+        // cube.rotation.x = elapsedTime + 0.1 * Math.random();
+        cube.rotation.y = elapsedTime + 0.1 * Math.random();
+        cube.rotation.z = elapsedTime + 0.1 * Math.random();
+
+        // cube.rotation.x = Math.sin(elapsedTime * 1.0);
+        // cube.rotation.y = Math.sin(elapsedTime * 1.4);
+        // cube.rotation.z = Math.sin(elapsedTime * 1.8);
+
+        // cube.position.x = Math.sin(elapsedTime * 1);
+        // cube.position.y = Math.cos(elapsedTime * 0.2);
+        // cube.position.z = Math.cos(elapsedTime * 0.5);
 
         // animate
         shaderMaterial.uniforms.uTime.value = elapsedTime;
@@ -180,9 +195,9 @@
         // composer.render();
 
         // Record
-        // if (canRecord) {
-        //   capturer.capture(canvas);
-        // }
+        if (canRecord) {
+          capturer.capture(canvas);
+        }
 
         // Call tick again on the next frame
         window.requestAnimationFrame(tick);
@@ -190,21 +205,21 @@
 
       tick();
 
-      // window.addEventListener("keydown", ({ code }) => {
-      //   console.log(code);
+      window.addEventListener("keydown", ({ code }) => {
+        console.log(code);
 
-      //   if (code === "Space") {
-      //     capturer.start();
-      //     canRecord = true;
+        if (code === "Space") {
+          capturer.start();
+          canRecord = true;
 
-      //     setTimeout(() => {
-      //       capturer.stop();
-      //       capturer.save();
+          setTimeout(() => {
+            capturer.stop();
+            capturer.save();
 
-      //       canRecord = false;
-      //     }, 20000);
-      //   }
-      // });
+            canRecord = false;
+          }, 20000);
+        }
+      });
     </script>
   </body>
 </html>
