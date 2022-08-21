@@ -51,7 +51,7 @@
       const scene = new THREE.Scene();
 
       // Geometry
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const geometry = new THREE.PlaneGeometry(2, 2);
 
       // Material
       const uniforms = {
@@ -67,7 +67,7 @@
         uniforms,
         vertexShader: `
           varying vec2 vUv;
-
+        
           void main() {
             vUv = uv;
 
@@ -99,11 +99,7 @@
       };
 
       // Camera
-      const camera = new THREE.PerspectiveCamera(
-        30,
-        sizes.width / sizes.height
-      );
-      camera.position.z = 7;
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
       scene.add(camera);
 
       // Controls

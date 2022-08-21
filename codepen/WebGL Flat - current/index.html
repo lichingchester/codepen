@@ -51,7 +51,7 @@
       const scene = new THREE.Scene();
 
       // Geometry
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const geometry = new THREE.PlaneGeometry(2, 2);
 
       // Material
       const uniforms = {
@@ -75,12 +75,113 @@
           }
         `,
         fragmentShader: `
-          // uniform float uTime;
+          uniform float uTime;
           uniform vec3 uColor;
           varying vec2 vUv;
 
+          #define PI 3.14159265359
+
+          // 2D Random
+          float random (in vec2 st) {
+              return fract(sin(dot(st.xy,
+                                  vec2(12.9898,78.233)))
+                          * 43758.5453123);
+          }
+
+          vec2 random2( vec2 p ) {
+              return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+          }
+
+          // 2D Noise based on Morgan McGuire @morgan3d
+          // https://www.shadertoy.com/view/4dS3Wd
+          float noise (in vec2 st) {
+              vec2 i = floor(st);
+              vec2 f = fract(st);
+
+              // Four corners in 2D of a tile
+              float a = random(i);
+              float b = random(i + vec2(1.0, 0.0));
+              float c = random(i + vec2(0.0, 1.0));
+              float d = random(i + vec2(1.0, 1.0));
+
+              // Smooth Interpolation
+
+              // Cubic Hermine Curve.  Same as SmoothStep()
+              vec2 u = f*f*(3.0-2.0*f);
+              // u = smoothstep(0.,1.,f);
+
+              // Mix 4 coorners percentages
+              return mix(a, b, u.x) +
+                      (c - a)* u.y * (1.0 - u.x) +
+                      (d - b) * u.x * u.y;
+          }
+
+          vec2 rotate2D(vec2 _st, float _angle){
+              _st -= 0.5;
+              _st =  mat2(cos(_angle),-sin(_angle),
+                          sin(_angle),cos(_angle)) * _st;
+              _st += 0.5;
+              return _st;
+          }
+
+          mat2 scale(vec2 _scale){
+              return mat2(_scale.x,0.0,
+                          0.0,_scale.y);
+          }
+
+          vec2 tile(vec2 _st, float _zoom){
+              _st *= _zoom;
+              return fract(_st);
+          }
+
+          float box(vec2 _st, vec2 _size, float _smoothEdges){
+              _size = vec2(0.5)-_size*0.5;
+              vec2 aa = vec2(_smoothEdges*0.5);
+              vec2 uv = smoothstep(_size,_size+aa,_st);
+              uv *= smoothstep(_size,_size+aa,vec2(1.0)-_st);
+              return uv.x*uv.y;
+          }
+
           void main() {
-            gl_FragColor = vec4( uColor.rgb, 1.0 );
+            vec2 st = vUv;
+            vec3 color = vec3(0.0);
+
+            // int point_amount = 10;
+            // // vec2 point[10];
+            // float m_dist = 1.;
+
+            // // point[0] = vec2(0.83,0.75);
+            // // point[1] = vec2(0.60,0.07);
+            // // point[2] = vec2(0.28,0.64);
+            // // point[3] =  vec2(0.31,0.26);
+
+            // // Iterate through the points positions
+            // for (int i = 0; i < point_amount; i++) {
+            //     vec2 point = vec2(random(vec2(i)), random(vec2(i+1)));
+            //     float dist = distance(st, point);
+
+            //     // Keep the closer distance
+            //     m_dist = min(m_dist, dist);
+            // }
+
+            // // color = vec3(st.x);
+            // color += m_dist;
+
+            // Scale
+            st *= 3.;
+
+            // Tile the space
+            vec2 i_st = floor(st);
+            vec2 f_st = fract(st);
+
+            vec2 point = random2(i_st);
+
+            vec2 diff = point - f_st;
+            float dist = length(diff);
+
+            color = vec3(dist);
+
+            gl_FragColor = vec4( color, 1.0 );
           }
         `,
       });
@@ -99,11 +200,7 @@
       };
 
       // Camera
-      const camera = new THREE.PerspectiveCamera(
-        30,
-        sizes.width / sizes.height
-      );
-      camera.position.z = 7;
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
       scene.add(camera);
 
       // Controls
@@ -141,6 +238,8 @@
       const tick = () => {
         const elapsedTime = clock.getElapsedTime();
         // const elapsedTime = Date.now() * 0.01;
+
+        cube.material.uniforms.uTime.value = elapsedTime;
 
         // Update controls
         controls.update();
