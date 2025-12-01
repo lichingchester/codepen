@@ -1,0 +1,624 @@
+<script setup lang="ts">
+import { onMounted, onBeforeUnmount, ref } from 'vue';
+import * as THREE from 'three';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+import gsap from 'gsap';
+import { Pane } from 'tweakpane';
+
+const container = ref<HTMLDivElement | null>(null);
+let renderer: THREE.WebGLRenderer;
+let scene: THREE.Scene;
+let camera: THREE.OrthographicCamera;
+let material: THREE.ShaderMaterial;
+let animationId: number;
+let pane: Pane;
+
+// Debug parameters
+const params = {
+  // Distortion
+  distortionIntensity: 0.08,
+  distortionSpeed: 0.3,
+  distortionScale: 8.0,
+  noise1Weight: 0.5,
+  noise2Weight: 0.3,
+  noise3Weight: 0.2,
+  noise2Scale: 2.0,
+  noise3Scale: 4.0,
+  noise2Speed: 0.7,
+  noise3Speed: 0.5,
+
+  // Animation
+  animationEnabled: true,
+  animationDuration: 3.8,
+  animationDelay: 0.5,
+  edgeWidth: 0.15,
+  manualProgress: 0,
+
+  // Effects
+  chromaticAberration: 0.003,
+  edgeFog: 0.15,
+  vignetteIntensity: 0.2,
+  normalMapInfluence: 0.02,
+
+  // Normal Map
+  normalMapScale: 4.0,
+  normalMapOffset: 0.001,
+
+  // Flow
+  flowSpeed: 0.1,
+  flowStrength: 0.2,
+
+  // FBM
+  fbmOctaves: 5,
+  fbmSpeed: 0.1,
+  fbmAmplitude: 0.5,
+  fbmFrequency: 1.0,
+  fbmLacunarity: 2.0,
+  fbmGain: 0.5,
+
+  // Restart Animation
+  restart: () => {
+    if (progressAnimation) {
+      progressAnimation.restart();
+    }
+  },
+
+  // Export Config
+  exportConfig: () => {
+    const config = {
+      distortionIntensity: params.distortionIntensity,
+      distortionSpeed: params.distortionSpeed,
+      distortionScale: params.distortionScale,
+      noise1Weight: params.noise1Weight,
+      noise2Weight: params.noise2Weight,
+      noise3Weight: params.noise3Weight,
+      noise2Scale: params.noise2Scale,
+      noise3Scale: params.noise3Scale,
+      noise2Speed: params.noise2Speed,
+      noise3Speed: params.noise3Speed,
+      animationDuration: params.animationDuration,
+      animationDelay: params.animationDelay,
+      edgeWidth: params.edgeWidth,
+      chromaticAberration: params.chromaticAberration,
+      edgeFog: params.edgeFog,
+      vignetteIntensity: params.vignetteIntensity,
+      normalMapInfluence: params.normalMapInfluence,
+      normalMapScale: params.normalMapScale,
+      normalMapOffset: params.normalMapOffset,
+      flowSpeed: params.flowSpeed,
+      flowStrength: params.flowStrength,
+      fbmSpeed: params.fbmSpeed,
+      fbmAmplitude: params.fbmAmplitude,
+      fbmFrequency: params.fbmFrequency,
+      fbmLacunarity: params.fbmLacunarity,
+      fbmGain: params.fbmGain,
+    };
+
+    const configJson = JSON.stringify(config, null, 2);
+
+    // Create a blob and download as file
+    const blob = new Blob([configJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `liquid-logo-config-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log('Config exported as file!');
+  },
+};
+
+let progressAnimation: gsap.core.Tween | null = null;
+
+// SVG Content from Logo.vue
+const svgContent = `
+<svg width="622" height="157" viewBox="0 0 622 157" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M621.04 2.26999H561.83L543.22 153.68H602.92L606.32 125.76H576.13L580.45 91.76H606.55L610.18 63.16H583.85L587.94 30.47H617.68L621.04 2.26999Z"
+      fill="white"
+    />
+    <path d="M533.63 125.31H502.76L517.76 2.31H488.23L469.62 153.68H530.04L533.63 125.31Z" fill="white" />
+    <path d="M465.34 2.26999H435.83L417.22 153.68H446.73L465.34 2.26999Z" fill="white" />
+    <path
+      d="M403.65 2.26999H364.15L341.23 91.71L337.6 2.26999H298.78L267.04 153.68H298.82L316.75 44.68C316.52 48.08 316.3 51.26 316.3 54.68C316.3 62.17 316.98 69.89 317.21 77.38C318.34 102.8 320.84 128.23 322.88 153.65H345.58L367.83 79.65C371.372 68.1583 374.25 56.4724 376.45 44.65L370.55 153.65H400.74L403.65 2.26999Z"
+      fill="white"
+    />
+    <path
+      d="M264.9 7.27C256.5 2.27 249.46 0 239.7 0C211.78 0 194.7 25.43 194.7 51.3C194.7 69.69 203.1 79 216.95 89.44C219.467 91.2026 221.89 93.0951 224.21 95.11C226.94 97.38 229.89 100.11 231.21 103.51C231.769 105.19 232 106.963 231.89 108.73C231.89 120.31 223.72 128.03 212.14 128.03C203.97 128.03 197.84 124.63 191.48 119.86L187.85 148.46C195.12 153.91 203.74 156.18 212.85 156.18C242.59 156.18 261.43 130.53 261.43 102.38C261.43 69.47 224.2 65.83 224.2 44.04C224.2 34.04 231.01 26.79 241 26.79C249.18 26.79 255.53 31.1 261.2 36.55L264.9 7.27Z"
+      fill="white"
+    />
+    <path
+      d="M76.5 155.68C118.75 155.68 153 121.43 153 79.18C153 36.9302 118.75 2.67999 76.5 2.67999C34.2502 2.67999 0 36.9302 0 79.18C0 121.43 34.2502 155.68 76.5 155.68Z"
+      fill="white"
+    />
+</svg>
+`;
+
+const vertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+const fragmentShader = `
+uniform sampler2D uTexture;
+uniform float uTime;
+uniform vec2 uMouse;
+uniform float uProgress;
+
+// Uniforms for tweakable parameters
+uniform float uDistortionIntensity;
+uniform float uDistortionSpeed;
+uniform float uDistortionScale;
+uniform float uNoise1Weight;
+uniform float uNoise2Weight;
+uniform float uNoise3Weight;
+uniform float uNoise2Scale;
+uniform float uNoise3Scale;
+uniform float uNoise2Speed;
+uniform float uNoise3Speed;
+uniform float uEdgeWidth;
+uniform float uChromaticAberration;
+uniform float uEdgeFog;
+uniform float uVignetteIntensity;
+uniform float uNormalMapInfluence;
+uniform float uNormalMapScale;
+uniform float uNormalMapOffset;
+uniform float uFlowSpeed;
+uniform float uFlowStrength;
+uniform float uFbmSpeed;
+uniform float uFbmAmplitude;
+uniform float uFbmFrequency;
+uniform float uFbmLacunarity;
+uniform float uFbmGain;
+
+varying vec2 vUv;
+
+// ========== GRADIENT NOISE ==========
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec2 mod289_2(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+float gradientNoise(vec2 v) {
+  const vec4 C = vec4(0.211324865405187,
+                      0.366025403784439,
+                     -0.577350269189626,
+                      0.024390243902439);
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+  vec2 i1;
+  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod289_2(i);
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+		+ i.x + vec3(0.0, i1.x, 1.0 ));
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+
+// Fractal Brownian Motion
+float fbm(vec2 p, float time) {
+  float value = 0.0;
+  float amplitude = uFbmAmplitude;
+  float frequency = uFbmFrequency;
+  
+  for(int i = 0; i < 5; i++) {
+    value += amplitude * gradientNoise(p * frequency + time * uFbmSpeed);
+    frequency *= uFbmLacunarity;
+    amplitude *= uFbmGain;
+  }
+  return value;
+}
+
+// ========== NORMAL MAP GENERATION ==========
+vec3 generateNormalMap(vec2 uv, float time) {
+  float offset = uNormalMapOffset;
+  
+  float center = fbm(uv, time);
+  float right = fbm(uv + vec2(offset, 0.0), time);
+  float top = fbm(uv + vec2(0.0, offset), time);
+  
+  float dx = (right - center) / offset;
+  float dy = (top - center) / offset;
+  
+  vec3 normal = normalize(vec3(-dx, -dy, 1.0));
+  
+  return normal * 0.5 + 0.5;
+}
+
+// ========== FROSTED GLASS DISTORTION ==========
+vec2 getFrostedGlassDistortion(vec2 uv, float time, float intensity) {
+  float noise1 = fbm(uv * uDistortionScale, time * uDistortionSpeed);
+  float noise2 = fbm(uv * uDistortionScale * uNoise2Scale, time * uDistortionSpeed * uNoise2Speed);
+  float noise3 = fbm(uv * uDistortionScale * uNoise3Scale, time * uDistortionSpeed * uNoise3Speed);
+  
+  vec2 distortion = vec2(noise1 * uNoise1Weight + noise2 * uNoise2Weight + noise3 * uNoise3Weight);
+  
+  float flowAngle = time * uFlowSpeed + noise1;
+  distortion += vec2(cos(flowAngle), sin(flowAngle)) * uFlowStrength;
+  
+  return distortion * intensity;
+}
+
+// ========== POST-PROCESSING EFFECTS ==========
+vec3 chromaticAberration(sampler2D tex, vec2 uv, vec2 direction, float strength) {
+  vec2 offset = direction * strength;
+  float r = texture2D(tex, uv + offset).r;
+  float g = texture2D(tex, uv).g;
+  float b = texture2D(tex, uv - offset).b;
+  return vec3(r, g, b);
+}
+
+float vignette(vec2 uv, float intensity) {
+  vec2 centered = uv - 0.5;
+  float dist = length(centered);
+  return 1.0 - smoothstep(0.3, 0.8, dist) * intensity;
+}
+
+// ========== MAIN ==========
+void main() {
+  vec2 uv = vUv;
+  
+  // Scale to 50% and center
+  float scale = 0.5;
+  uv = (uv - 0.5) / scale + 0.5;
+  
+  // Create animated progress mask
+  float maskStart = uProgress - uEdgeWidth;
+  float maskEnd = uProgress;
+  float progressMask = smoothstep(maskStart, maskEnd, uv.x);
+  
+  // Generate normal map
+  vec3 normalMap = generateNormalMap(uv * uNormalMapScale, uTime);
+  
+  // Get frosted glass distortion
+  float distortionIntensity = uDistortionIntensity * progressMask;
+  vec2 glassDistortion = getFrostedGlassDistortion(uv, uTime, distortionIntensity);
+  
+  // Apply normal map influence
+  glassDistortion += (normalMap.xy - 0.5) * uNormalMapInfluence * progressMask;
+  
+  // Final distorted UV
+  vec2 distortedUv = uv + glassDistortion;
+  
+  // Check bounds
+  if (distortedUv.x < 0.0 || distortedUv.x > 1.0 || distortedUv.y < 0.0 || distortedUv.y > 1.0) {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+  } else {
+    // Sample texture with chromatic aberration
+    vec2 aberrationDir = (normalMap.xy - 0.5) * 2.0;
+    float aberrationStrength = uChromaticAberration * progressMask;
+    vec3 color = chromaticAberration(uTexture, distortedUv, aberrationDir, aberrationStrength);
+    
+    // Add frosted glass fog effect
+    float edgeFog = smoothstep(maskStart + 0.05, maskEnd - 0.05, uv.x);
+    edgeFog = 1.0 - edgeFog;
+    color = mix(color, vec3(1.0), edgeFog * uEdgeFog * progressMask);
+    
+    // Apply vignette
+    float vig = vignette(distortedUv, uVignetteIntensity * progressMask);
+    color *= vig;
+    
+    // Sample original texture alpha
+    float alpha = texture2D(uTexture, distortedUv).a;
+    
+    gl_FragColor = vec4(color, alpha);
+  }
+}
+`;
+
+const initCanvas = async () => {
+  if (!container.value) return;
+
+  const width = 622 * 1.5;
+  const height = 157 * 1.5;
+  const padding = 0;
+  const canvasWidth = width + padding * 2;
+  const canvasHeight = height + padding * 2;
+  const aspectRatio = canvasWidth / canvasHeight;
+
+  // Scene setup
+  scene = new THREE.Scene();
+
+  const helper = new THREE.GridHelper(160, 10, 0x8d8d8d, 0xc1c1c1);
+  helper.rotation.x = Math.PI / 2;
+  scene.add(helper);
+
+  // Orthographic camera
+  const frustumSize = 1;
+  camera = new THREE.OrthographicCamera(
+    (frustumSize * aspectRatio) / -2,
+    (frustumSize * aspectRatio) / 2,
+    frustumSize / 2,
+    frustumSize / -2,
+    0.1,
+    1000,
+  );
+  camera.position.z = 1;
+
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(canvasWidth, canvasHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.value.appendChild(renderer.domElement);
+
+  // Load SVG Texture
+  const img = new Image();
+  img.width = width * 2;
+  img.height = height * 2;
+
+  const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(svgBlob);
+
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width * 2;
+    canvas.height = height * 2;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    const svgAspectRatio = width / height;
+    const geometry = new THREE.PlaneGeometry(svgAspectRatio, 1, 32, 32);
+    material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader: fragmentShader,
+      uniforms: {
+        uTime: { value: 0 },
+        uTexture: { value: texture },
+        uMouse: { value: new THREE.Vector2(0, 0) },
+        uProgress: { value: 0 },
+        // Tweakable uniforms
+        uDistortionIntensity: { value: params.distortionIntensity },
+        uDistortionSpeed: { value: params.distortionSpeed },
+        uDistortionScale: { value: params.distortionScale },
+        uNoise1Weight: { value: params.noise1Weight },
+        uNoise2Weight: { value: params.noise2Weight },
+        uNoise3Weight: { value: params.noise3Weight },
+        uNoise2Scale: { value: params.noise2Scale },
+        uNoise3Scale: { value: params.noise3Scale },
+        uNoise2Speed: { value: params.noise2Speed },
+        uNoise3Speed: { value: params.noise3Speed },
+        uEdgeWidth: { value: params.edgeWidth },
+        uChromaticAberration: { value: params.chromaticAberration },
+        uEdgeFog: { value: params.edgeFog },
+        uVignetteIntensity: { value: params.vignetteIntensity },
+        uNormalMapInfluence: { value: params.normalMapInfluence },
+        uNormalMapScale: { value: params.normalMapScale },
+        uNormalMapOffset: { value: params.normalMapOffset },
+        uFlowSpeed: { value: params.flowSpeed },
+        uFlowStrength: { value: params.flowStrength },
+        uFbmSpeed: { value: params.fbmSpeed },
+        uFbmAmplitude: { value: params.fbmAmplitude },
+        uFbmFrequency: { value: params.fbmFrequency },
+        uFbmLacunarity: { value: params.fbmLacunarity },
+        uFbmGain: { value: params.fbmGain },
+      },
+      transparent: true,
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // Animate progress
+    progressAnimation = gsap.to(material.uniforms.uProgress, {
+      value: 1.2,
+      duration: params.animationDuration,
+      ease: 'power2.inOut',
+      repeat: -1,
+      yoyo: false,
+      repeatDelay: params.animationDelay,
+    });
+
+    URL.revokeObjectURL(url);
+  };
+
+  img.src = url;
+
+  // Animation Loop
+  const clock = new THREE.Clock();
+
+  const animate = () => {
+    animationId = requestAnimationFrame(animate);
+
+    if (material) {
+      material.uniforms.uTime.value = clock.getElapsedTime();
+    }
+
+    renderer.render(scene, camera);
+  };
+
+  animate();
+};
+
+const initDebugUI = () => {
+  pane = new Pane({ title: 'Liquid Logo Controls', expanded: true });
+
+  // Distortion folder
+  const distortionFolder = pane.addFolder({ title: 'Frosted Glass Distortion', expanded: true });
+  distortionFolder.addBinding(params, 'distortionIntensity', { min: 0, max: 0.3, step: 0.001, label: 'Intensity' }).on('change', (ev) => {
+    if (material) material.uniforms.uDistortionIntensity.value = ev.value;
+  });
+  distortionFolder.addBinding(params, 'distortionSpeed', { min: 0, max: 1, step: 0.01, label: 'Speed' }).on('change', (ev) => {
+    if (material) material.uniforms.uDistortionSpeed.value = ev.value;
+  });
+  distortionFolder.addBinding(params, 'distortionScale', { min: 1, max: 32, step: 0.1, label: 'Base Scale' }).on('change', (ev) => {
+    if (material) material.uniforms.uDistortionScale.value = ev.value;
+  });
+
+  const noiseWeightsFolder = distortionFolder.addFolder({ title: 'Noise Weights', expanded: false });
+  noiseWeightsFolder.addBinding(params, 'noise1Weight', { min: 0, max: 1, step: 0.01, label: 'Noise 1' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise1Weight.value = ev.value;
+  });
+  noiseWeightsFolder.addBinding(params, 'noise2Weight', { min: 0, max: 1, step: 0.01, label: 'Noise 2' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise2Weight.value = ev.value;
+  });
+  noiseWeightsFolder.addBinding(params, 'noise3Weight', { min: 0, max: 1, step: 0.01, label: 'Noise 3' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise3Weight.value = ev.value;
+  });
+
+  const noiseScalesFolder = distortionFolder.addFolder({ title: 'Noise Scales', expanded: false });
+  noiseScalesFolder.addBinding(params, 'noise2Scale', { min: 0.5, max: 8, step: 0.1, label: 'Noise 2 Scale' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise2Scale.value = ev.value;
+  });
+  noiseScalesFolder.addBinding(params, 'noise3Scale', { min: 0.5, max: 16, step: 0.1, label: 'Noise 3 Scale' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise3Scale.value = ev.value;
+  });
+
+  const noiseSpeedsFolder = distortionFolder.addFolder({ title: 'Noise Speeds', expanded: false });
+  noiseSpeedsFolder.addBinding(params, 'noise2Speed', { min: 0, max: 2, step: 0.01, label: 'Noise 2 Speed' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise2Speed.value = ev.value;
+  });
+  noiseSpeedsFolder.addBinding(params, 'noise3Speed', { min: 0, max: 2, step: 0.01, label: 'Noise 3 Speed' }).on('change', (ev) => {
+    if (material) material.uniforms.uNoise3Speed.value = ev.value;
+  });
+
+  // Animation folder
+  const animationFolder = pane.addFolder({ title: 'Animation', expanded: true });
+
+  // Enable/Disable toggle
+  animationFolder.addBinding(params, 'animationEnabled', { label: 'Enable Animation' }).on('change', (ev) => {
+    if (progressAnimation) {
+      if (ev.value) {
+        progressAnimation.play();
+      } else {
+        progressAnimation.pause();
+      }
+    }
+  });
+
+  // Manual progress control (only works when animation is disabled)
+  animationFolder
+    .addBinding(params, 'manualProgress', {
+      min: 0,
+      max: 1.2,
+      step: 0.01,
+      label: 'Manual Progress',
+    })
+    .on('change', (ev) => {
+      if (material && !params.animationEnabled) {
+        material.uniforms.uProgress.value = ev.value;
+      }
+    });
+
+  animationFolder.addBinding(params, 'animationDuration', { min: 0.5, max: 10, step: 0.1 }).on('change', (ev) => {
+    if (progressAnimation) {
+      progressAnimation.duration(ev.value);
+    }
+  });
+  animationFolder.addBinding(params, 'animationDelay', { min: 0, max: 3, step: 0.1 }).on('change', (ev) => {
+    if (progressAnimation) {
+      progressAnimation.repeatDelay(ev.value);
+    }
+  });
+  animationFolder.addBinding(params, 'edgeWidth', { min: 0.01, max: 0.5, step: 0.01 }).on('change', (ev) => {
+    if (material) material.uniforms.uEdgeWidth.value = ev.value;
+  });
+  animationFolder.addButton({ title: 'Restart Animation' }).on('click', params.restart);
+
+  // Effects folder
+  const effectsFolder = pane.addFolder({ title: 'Effects', expanded: true });
+  effectsFolder.addBinding(params, 'chromaticAberration', { min: 0, max: 0.02, step: 0.0001 }).on('change', (ev) => {
+    if (material) material.uniforms.uChromaticAberration.value = ev.value;
+  });
+  effectsFolder.addBinding(params, 'edgeFog', { min: 0, max: 0.5, step: 0.01 }).on('change', (ev) => {
+    if (material) material.uniforms.uEdgeFog.value = ev.value;
+  });
+  effectsFolder.addBinding(params, 'vignetteIntensity', { min: 0, max: 1, step: 0.01 }).on('change', (ev) => {
+    if (material) material.uniforms.uVignetteIntensity.value = ev.value;
+  });
+  effectsFolder.addBinding(params, 'normalMapInfluence', { min: 0, max: 0.1, step: 0.001 }).on('change', (ev) => {
+    if (material) material.uniforms.uNormalMapInfluence.value = ev.value;
+  });
+
+  // Normal Map folder
+  const normalMapFolder = pane.addFolder({ title: 'Normal Map', expanded: false });
+  normalMapFolder.addBinding(params, 'normalMapScale', { min: 0.5, max: 16, step: 0.1, label: 'Scale' }).on('change', (ev) => {
+    if (material) material.uniforms.uNormalMapScale.value = ev.value;
+  });
+  normalMapFolder.addBinding(params, 'normalMapOffset', { min: 0.0001, max: 0.01, step: 0.0001, label: 'Offset' }).on('change', (ev) => {
+    if (material) material.uniforms.uNormalMapOffset.value = ev.value;
+  });
+
+  // Flow folder
+  const flowFolder = pane.addFolder({ title: 'Flow', expanded: false });
+  flowFolder.addBinding(params, 'flowSpeed', { min: 0, max: 1, step: 0.01 }).on('change', (ev) => {
+    if (material) material.uniforms.uFlowSpeed.value = ev.value;
+  });
+  flowFolder.addBinding(params, 'flowStrength', { min: 0, max: 1, step: 0.01 }).on('change', (ev) => {
+    if (material) material.uniforms.uFlowStrength.value = ev.value;
+  });
+
+  // FBM folder
+  const fbmFolder = pane.addFolder({ title: 'FBM (Noise Base)', expanded: false });
+  fbmFolder.addBinding(params, 'fbmSpeed', { min: 0, max: 0.5, step: 0.01, label: 'Speed' }).on('change', (ev) => {
+    if (material) material.uniforms.uFbmSpeed.value = ev.value;
+  });
+  fbmFolder.addBinding(params, 'fbmAmplitude', { min: 0, max: 2, step: 0.01, label: 'Amplitude' }).on('change', (ev) => {
+    if (material) material.uniforms.uFbmAmplitude.value = ev.value;
+  });
+  fbmFolder.addBinding(params, 'fbmFrequency', { min: 0.1, max: 5, step: 0.1, label: 'Frequency' }).on('change', (ev) => {
+    if (material) material.uniforms.uFbmFrequency.value = ev.value;
+  });
+  fbmFolder.addBinding(params, 'fbmLacunarity', { min: 1, max: 4, step: 0.1, label: 'Lacunarity' }).on('change', (ev) => {
+    if (material) material.uniforms.uFbmLacunarity.value = ev.value;
+  });
+  fbmFolder.addBinding(params, 'fbmGain', { min: 0, max: 1, step: 0.01, label: 'Gain' }).on('change', (ev) => {
+    if (material) material.uniforms.uFbmGain.value = ev.value;
+  });
+
+  // Export button at the bottom
+  pane.addButton({ title: 'Export Config' }).on('click', params.exportConfig);
+};
+
+onMounted(() => {
+  initCanvas();
+  initDebugUI();
+});
+
+onBeforeUnmount(() => {
+  cancelAnimationFrame(animationId);
+  if (renderer) {
+    renderer.dispose();
+    renderer.forceContextLoss();
+  }
+  if (material) material.dispose();
+  if (progressAnimation) progressAnimation.kill();
+  if (pane) pane.dispose();
+});
+</script>
+
+<template>
+  <div class="">
+    <div ref="container" class="liquid-logo-container"></div>
+  </div>
+</template>
+
+<style scoped>
+.liquid-logo-container :deep(canvas) {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  border: 1px solid red;
+}
+</style>
