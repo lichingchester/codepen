@@ -72,8 +72,8 @@
       // Debug parameters
       const params = {
         // Distortion
-        distortionIntensity: 0.08,
-        distortionSpeed: 0.3,
+        distortionIntensity: 0.052,
+        distortionSpeed: 1,
         distortionScale: 8.0,
         noise1Weight: 0.5,
         noise2Weight: 0.3,
@@ -91,9 +91,9 @@
         manualProgress: 0,
 
         // Effects
-        chromaticAberration: 0.003,
+        chromaticAberration: 0.0011,
         edgeFog: 0.15,
-        vignetteIntensity: 0.2,
+        vignetteIntensity: 0.0,
         normalMapInfluence: 0.02,
 
         // Normal Map
@@ -106,7 +106,7 @@
 
         // FBM
         fbmOctaves: 5,
-        fbmSpeed: 0.1,
+        fbmSpeed: 0.5,
         fbmAmplitude: 0.5,
         fbmFrequency: 1.0,
         fbmLacunarity: 2.0,
@@ -307,8 +307,8 @@ void main() {
       const scene = new THREE.Scene();
 
       // Sizes
-      const width = 622 * 1.5;
-      const height = 157 * 1.5;
+      const width = 622 * 2.5;
+      const height = 157 * 2.5;
       const padding = 0;
       const canvasWidth = width + padding * 2;
       const canvasHeight = height + padding * 2;
@@ -414,7 +414,7 @@ void main() {
           duration: params.animationDuration,
           ease: "power2.inOut",
           repeat: -1,
-          yoyo: false,
+          yoyo: true,
           repeatDelay: params.animationDelay,
         });
 
